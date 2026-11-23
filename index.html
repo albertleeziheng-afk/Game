@@ -44,6 +44,16 @@
   #center{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:2;background:#0007;text-align:center;padding:16px}
   #center.on{display:flex}
   #center h2{margin:0;font-size:26px}
+  #luck{position:absolute;left:10px;bottom:38px;background:#000b;border:1px solid #ff3b3b55;border-radius:12px;padding:8px 10px;font-size:12px;display:none;z-index:2;min-width:150px;pointer-events:none}
+  #luck b{color:#ff6b6b;font-size:13px}
+  #luck .r{display:flex;align-items:center;gap:6px;margin-top:4px}
+  #luck .r span{width:52px;color:#ddd}
+  #luck .bar{flex:1;height:7px;background:#ffffff22;border-radius:4px;overflow:hidden}
+  #luck .bar i{display:block;height:100%;background:linear-gradient(90deg,#7b2ff7,#ff3b3b);transition:width .2s}
+  #luck .x{color:#ffb3b3;margin-top:5px}
+  .chant{width:100%;text-align:center;background:#3a0d12;border:1px solid #ff3b3b55;border-radius:12px;padding:8px}
+  .chant .zh{font-size:16px;font-weight:800;color:#ffd7d7}
+  .chant .py{font-size:13px;color:var(--gold)}
   #lung{position:absolute;left:50%;bottom:44px;width:min(60vw,260px);height:12px;margin-left:calc(min(60vw,260px)/-2);background:#0008;border-radius:6px;overflow:hidden;display:none}
   #lung i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb36b,#ff4d2e);border-radius:6px}
   .ft{position:absolute;transform:translate(-50%,-50%);font-weight:900;pointer-events:none;text-shadow:0 3px 8px #000;animation:ft 1.1s ease-out forwards;white-space:nowrap;z-index:2}
@@ -96,6 +106,7 @@
     <div id="bubble"></div>
     <div id="hint"></div>
     <div id="lung"><i></i></div>
+    <div id="luck"></div>
     <div id="center"></div>
   </div>
   <div id="tools"></div>
@@ -128,7 +139,7 @@ const I18N = {
     puffs:'口', cigs:'根', hits:'下',
     sLight:'点一根？', sLightBtn:'🔥 买一根并点火', sHint:'按住 = 吸 · 放开 = 呼', sDone:'抽完了', sAgain:'🚬 再来一根', cough:'咳咳咳！',
     vTalk:'同师傅讲你想做咩…', vSend:'讲', vNameIn:'写上小人的名字 / 外号', vGive:'交俾师傅', vHint:'👆 狂点屏幕，拖鞋拍拍拍！', vAgain:'🩴 再打一个', vDoneT:'小人打走晒 ✨',
-    vReadThis:'跟住读出来：', vMic:'🎤 点一下开始讲', vMicStop:'⏹ 讲完点这里', vHeard:'婆婆听到：', vAcc:'准确度', vMicDenied:'麦克风被拒绝了，请在浏览器设置里允许使用麦克风。', vNoSR:'这个浏览器不支持语音识别，请用中文打字跟师傅讲：', mand:'普通话', cant:'广东话', vTries:'剩下机会：', vSayName:'讲出你想打嘅人个名', vNameEg:'例如：衰老板、前度、霉运', vOverT:'婆婆：「听唔明，收工！」', vOverD:'婆婆完全听不懂你在讲什么，把你赶走了。', vRetry:'🙏 再求一次婆婆', vFinish:'😮‍💨 打爽了，收工',
+    vReadThis:'跟住读出来：', vMic:'🎤 点一下开始讲', vMicStop:'⏹ 讲完点这里', vHeard:'婆婆听到：', vAcc:'准确度', vMicDenied:'麦克风被拒绝了，请在浏览器设置里允许使用麦克风。', vNoSR:'这个浏览器不支持语音识别，请用中文打字跟师傅讲：', mand:'普通话', cant:'广东话', vTries:'剩下机会：', vSayName:'讲出你想打嘅人个名', vNameEg:'例如：衰老板、前度、霉运', vOverT:'婆婆：「听唔明，收工！」', vOverD:'婆婆完全听不懂你在讲什么，把你赶走了。', vRetry:'🙏 再求一次婆婆', vFinish:'😮‍💨 打爽了，收工', vLuckT:'嘅运势', vBottom:'💀 衰到贴地！', vChantT:'👄 边打边念：', vChantOr:'或者大声念「{n}」个名、骂佢都得！', vChantBtn:'🎤 念咒 / 骂佢', vChantStop:'🔴 念紧…（再按停）', vNameCrit:'🎯 念中个名！暴击！', vChantOK:'📿 咒语生效！连环拍！', vCurseIn:'打字骂佢 / 念咒…',
   },
   en: {
     title:'Stress Shop', sub:'Stressed out? Come let it out.<br>It\'s just a game — take a deep breath after 😮‍💨', langLbl:'Language', curLbl:'Currency',
@@ -140,7 +151,7 @@ const I18N = {
     puffs:' puffs', cigs:' cigs', hits:' hits',
     sLight:'Light one up?', sLightBtn:'🔥 Buy one & light it', sHint:'Hold = inhale · Release = exhale', sDone:'Finished', sAgain:'🚬 Another one', cough:'*cough cough*',
     vTalk:'Tell the master what you want…', vSend:'Say', vNameIn:'Villain\'s name / nickname', vGive:'Hand it over', vHint:'👆 Tap tap tap — the slipper slaps!', vAgain:'🩴 Another villain', vDoneT:'Villain banished ✨',
-    vReadThis:'Read this out loud:', vMic:'🎤 Tap to start speaking', vMicStop:'⏹ Tap when done', vHeard:'Granny heard: ', vAcc:'accuracy', vMicDenied:'Microphone blocked — please allow it in your browser settings.', vNoSR:'This browser has no speech recognition — type to the master in Chinese:', mand:'Mandarin', cant:'Cantonese', vTries:'Tries left:', vSayName:'Say the name of who you want to hit', vNameEg:'(in Chinese, e.g. 衰老板 — bad boss)', vOverT:'Granny: "No understand. Closed!"', vOverD:'Granny couldn\'t understand a word you said and shooed you away.', vRetry:'🙏 Beg granny again', vFinish:'😮‍💨 I feel better, done',
+    vReadThis:'Read this out loud:', vMic:'🎤 Tap to start speaking', vMicStop:'⏹ Tap when done', vHeard:'Granny heard: ', vAcc:'accuracy', vMicDenied:'Microphone blocked — please allow it in your browser settings.', vNoSR:'This browser has no speech recognition — type to the master in Chinese:', mand:'Mandarin', cant:'Cantonese', vTries:'Tries left:', vSayName:'Say the name of who you want to hit', vNameEg:'(in Chinese, e.g. 衰老板 — bad boss)', vOverT:'Granny: "No understand. Closed!"', vOverD:'Granny couldn\'t understand a word you said and shooed you away.', vRetry:'🙏 Beg granny again', vFinish:'😮‍💨 I feel better, done', vLuckT:'\'s fortune', vBottom:'💀 Out of luck!', vChantT:'👄 Chant while you hit:', vChantOr:'or shout "{n}" or curse them out!', vChantBtn:'🎤 Chant / curse', vChantStop:'🔴 Listening… (tap to stop)', vNameCrit:'🎯 Said the name! CRITICAL!', vChantOK:'📿 Chant works! Combo!', vCurseIn:'Type a curse / chant…',
   }
 };
 let lang = 'zh', currency = 'MYR';
@@ -294,7 +305,7 @@ function startGame(id){
   initRenderer();
   $('#home').classList.remove('on'); $('#game').classList.add('on');
   $('#gTitle').textContent = id === 'smoke' ? '🚬 ' + t('sName') : '🩴 ' + t('vName');
-  setScore(''); hint(''); center(''); tools(''); $('#bubble').style.display = 'none'; $('#lung').style.display = 'none';
+  setScore(''); hint(''); center(''); tools(''); $('#bubble').style.display = 'none'; $('#luck').style.display = 'none'; $('#lung').style.display = 'none';
   game = id === 'smoke' ? SmokeGame() : VillainGame();
   resize(); clock.getDelta();
   cancelAnimationFrame(raf); loop();
@@ -538,15 +549,16 @@ function similarity(heard, targets){
 
 function VillainGame(){
   scene = new T.Scene();
-  scene.background = new T.Color(0x14111a); scene.fog = new T.Fog(0x14111a, 8, 20);
+  scene.background = new T.Color(0x0c0809); scene.fog = new T.Fog(0x0c0809, 5, 14);
   camera = new T.PerspectiveCamera(45, 1, .05, 50);
   const G = { camPos:new T.Vector3(0,2.3,3.5), camLook:new T.Vector3(0,.05,-.65) };
   const baseCam = G.camPos.clone();
 
-  scene.add(new T.AmbientLight(0x9a92b0, .75));
-  const sun = new T.DirectionalLight(0xfff1dc, .75); sun.position.set(3,6,4); sun.castShadow = true;
+  scene.add(new T.AmbientLight(0x8a7088, .5));
+  const redRim = new T.PointLight(0xff2a2a, .8, 9); redRim.position.set(0,1.5,-2.6); scene.add(redRim);
+  const sun = new T.DirectionalLight(0xffe6c8, .45); sun.position.set(3,6,4); sun.castShadow = true;
   sun.shadow.mapSize.set(1024,1024); Object.assign(sun.shadow.camera, {left:-4,right:4,top:4,bottom:-4}); scene.add(sun);
-  const candleLight = new T.PointLight(0xff9a3a, 1.4, 6); candleLight.position.set(-1.25,-.3,.3); scene.add(candleLight);
+  const candleLight = new T.PointLight(0xff9a3a, .8, 5); candleLight.position.set(-1.25,-.3,.3); scene.add(candleLight);
 
   // ---- 像素材质 ----
   const cobble = pixTex(16,16,(g)=>{ noiseFill(g,0,0,16,16,0x6e6e72,.12);
@@ -581,6 +593,50 @@ function VillainGame(){
   const pot = vbox(.3,.24,.3,lam({map:solid(0xa77d2c,.12)})); pot.position.set(1.35,-.88,-.2); scene.add(pot);
   const incense = [];
   for(let i=0;i<3;i++){ const s = vbox(.025,.55,.025,lam(0xa8382c)); s.position.set(1.28+i*.07,-.5,-.2); scene.add(s); incense.push(new T.Vector3(1.28+i*.07,-.2,-.2)); }
+  // 一圈蜡烛
+  const candleTex = solid(0xc81e24), candleTexW = solid(0xe8e0d0);
+  for(let i=0;i<12;i++){
+    const a = Math.PI*.15 + i/11*Math.PI*1.7, x = Math.cos(a)*1.05, z = .15 - Math.sin(a)*1.25;
+    if(z > 1.1) continue;
+    const h = rand(.18,.42), c = vbox(.1,h,.1,lam({map: i%3 ? candleTex : candleTexW})); c.position.set(x,-1+h/2,z); scene.add(c);
+    const f = new T.Mesh(new T.BoxGeometry(.05,.09,.05), flameMat); f.position.set(x,-1+h+.06,z); scene.add(f); flamesM.push(f); candles.push(f.position);
+  }
+  // 符纸
+  const fuTex = pixTex(8,24,(g)=>{ noiseFill(g,0,0,8,24,0xf2d046,.06); g.fillStyle='#c4161c'; g.fillRect(3,2,2,2); g.fillRect(1,5,6,1); g.fillRect(3,6,1,6); g.fillRect(2,8,4,1); g.fillRect(1,12,2,1); g.fillRect(5,12,2,1); g.fillRect(3,14,2,4); g.fillRect(1,19,6,1); g.fillRect(2,21,1,2); g.fillRect(5,21,1,2); });
+  const fus = [];
+  [[-3.2,1.2,-2.18,0],[-3.2,.4,-2.18,.1],[3.2,1.1,-2.18,-.08],[3.2,.2,-2.18,.12],[-1.9,1.3,-3.24,.05],[1.6,1.5,-3.24,-.06],[2.3,.6,-3.24,.1],[-2.4,.3,-3.24,-.1]].forEach(([x,y,z,r]) => {
+    const f = new T.Mesh(new T.PlaneGeometry(.28,.84), lam({map:fuTex, side:T.DoubleSide})); f.position.set(x,y,z); f.rotation.z = r; scene.add(f); fus.push(f); });
+  // 金银纸
+  const goldT = pixTex(8,8,(g)=>{ noiseFill(g,0,0,8,8,0xe0b23a,.1); g.fillStyle='#fff3b0'; g.fillRect(2,2,4,4); });
+  const silverT = pixTex(8,8,(g)=>{ noiseFill(g,0,0,8,8,0xb8b8c0,.1); g.fillStyle='#ffffff'; g.fillRect(2,2,4,4); });
+  [[.95,.85],[-.95,.95],[1.05,-.55],[-1.6,.6]].forEach(([x,z],i) => { const n = 3 + (i%3); for(let k=0;k<n;k++){ const b = vbox(.3,.03,.3,lam({map: k%2 ? silverT : goldT})); b.position.set(x+rand(-.03,.03),-.985+k*.03,z+rand(-.03,.03)); b.rotation.y = rand(-.5,.5); scene.add(b); } });
+  // 化宝桶（烧纸嘅铁桶）
+  const bucketT = pixTex(8,8,(g)=>{ noiseFill(g,0,0,8,8,0x3a3a40,.15); g.fillStyle='#5a3020'; g.fillRect(rand(0,6)|0,rand(0,6)|0,2,2); });
+  const bucket = vbox(.45,.5,.45,lam({map:bucketT})); bucket.position.set(-1.65,-.75,-.75); scene.add(bucket);
+  const bucketFire = new T.Vector3(-1.65,-.48,-.75);
+  const bucketLight = new T.PointLight(0xff5a1a, 1.2, 4); bucketLight.position.set(-1.65,-.2,-.75); scene.add(bucketLight);
+  // 白虎纸（祭白虎）
+  const tigerT = pixTex(24,16,(g)=>{ noiseFill(g,0,0,24,16,0xf3ead2,.04); g.fillStyle='#111';
+    [[5,4],[9,4],[13,4],[17,4],[7,9],[11,9],[15,9]].forEach(([x,y])=>g.fillRect(x,y,1,3));
+    g.fillRect(1,3,4,4); g.fillStyle='#e01b1b'; g.fillRect(2,4,1,1); g.fillRect(4,4,1,1); g.fillStyle='#111';
+    g.fillRect(4,12,2,3); g.fillRect(9,12,2,3); g.fillRect(15,12,2,3); g.fillRect(20,12,2,3); g.fillRect(21,2,2,6); g.fillRect(22,1,2,2); });
+  const tiger = new T.Mesh(new T.PlaneGeometry(.75,.5), lam({map:tigerT, side:T.DoubleSide, transparent:true})); tiger.position.set(-.95,-.74,-.55); tiger.rotation.set(-.2,.5,0); scene.add(tiger);
+  // 红灯笼
+  const lanterns = [];
+  const lanT = pixTex(8,8,(g)=>{ noiseFill(g,0,0,8,8,0xc8141c,.08); g.fillStyle='#ffcf4a'; g.fillRect(0,0,8,1); g.fillRect(0,7,8,1); g.fillStyle='#8a0d12'; g.fillRect(2,1,1,6); g.fillRect(5,1,1,6); });
+  [[-1.9,-1.3],[1.9,-1.3]].forEach(([x,z]) => { const gL = new T.Group(); gL.position.set(x,3.9,z); scene.add(gL);
+    const str = vbox(.02,.9,.02,lam(0x222222)); str.position.y = -.45; gL.add(str);
+    const l = new T.Mesh(new T.BoxGeometry(.4,.45,.4), lam({map:lanT, emissive:0x661010})); l.position.y = -1.1; gL.add(l);
+    const pl = new T.PointLight(0xff3030, .6, 3.5); pl.position.y = -1.1; gL.add(pl); lanterns.push(gL); });
+  // 闪下闪下嘅灯泡
+  const bulb = new T.Mesh(new T.BoxGeometry(.12,.16,.12), new T.MeshBasicMaterial({color:0xfff0b0})); bulb.position.set(.6,3.0,-.4); scene.add(bulb);
+  const bulbWire = vbox(.015,.9,.015,lam(0x111111)); bulbWire.position.set(.6,3.5,-.4); scene.add(bulbWire);
+  const bulbLight = new T.PointLight(0xfff0c8, .9, 7); bulbLight.position.set(.6,2.9,-.4); scene.add(bulbLight);
+  let bulbOff = 0;
+  // 暗角一对红眼（一阵阵眨）
+  const eyeMat = new T.MeshBasicMaterial({color:0xff1a1a});
+  const eyes = new T.Group(); [-.07,.07].forEach(x => { const e = new T.Mesh(new T.BoxGeometry(.05,.03,.01), eyeMat); e.position.x = x; eyes.add(e); });
+  eyes.position.set(-2.55,.15,-3.22); scene.add(eyes); let eyeT = 3;
 
   // 砖头 + 纸公仔
   const brick = vbox(1.35,.32,1.85,lam({map:redBrick(2,1)})); brick.position.set(0,-.84,.15); scene.add(brick);
@@ -651,9 +707,9 @@ function VillainGame(){
   const strapM = lam(0xf5f5f5);
   [[-.1,.06,-.06],[.1,.06,-.06]].forEach(([x,y,z]) => { const s = vbox(.05,.08,.05,strapM); s.position.set(x,y,z); slipper.add(s); });
   const strapTop = vbox(.25,.04,.06,strapM); strapTop.position.set(0,.11,-.06); slipper.add(strapTop);
-  slipper.visible = false;
+  slipper.visible = false; slipper.scale.setScalar(1.35);
 
-  const hover = {p:new T.Vector3(.75,-.3,.35), r:new T.Euler(-.5,.3,.45)};
+  const hover = {p:new T.Vector3(.3,-.2,-.3), r:new T.Euler(-.95,-.45,.5)};
   let anim = null;
   const cur = () => ({p:slipper.position.clone(), r:slipper.rotation.clone()});
   function pose(a, b, k){ slipper.position.lerpVectors(a.p, b.p, k); slipper.rotation.set(a.r.x+(b.r.x-a.r.x)*k, a.r.y+(b.r.y-a.r.y)*k, a.r.z+(b.r.z-a.r.z)*k); }
@@ -666,7 +722,7 @@ function VillainGame(){
   function camTargets(){
     const k = Math.max(1, .95/aspect);
     if(view === 'wide'){ camTarget.set(0, 2.3*Math.min(1.5,.75+k*.25), 3.5*Math.min(1.9,.55+k*.45)); lookTarget.set(0,.05,-.65); }
-    else { const z = Math.min(2.2, .55 + k*.75); camTarget.set(0, 1.0 + z*.35, z + .35); lookTarget.set(0,paperY,.1); }
+    else { const z = Math.min(2.5, .75 + k*.8); camTarget.set(0, 1.1 + z*.4, z + .3); lookTarget.set(0,paperY,.05); }
   }
 
   // ---- 对话 ----
@@ -790,22 +846,109 @@ function VillainGame(){
       $('#retry').onclick = () => { center(''); refusals = 0; turnAway = 0; speak('又系你？好啦，你要做咩呀？', 'You again? Fine, what do you want?'); askUI(); };
     }, 1800);
   }
+  // ---- 扣运势 ----
+  const LUCK = [
+    {k:'气运', en:'Luck', bar:1}, {k:'财运', en:'Wealth', bar:1}, {k:'桃花运', en:'Romance', bar:1}, {k:'事业运', en:'Career', bar:1}, {k:'人缘', en:'Friends', bar:1},
+    {k:'头发', en:'Hair', u:' 根', ue:' strands', mul:3}, {k:'智商', en:'IQ'}, {k:'颜值', en:'Looks'}, {k:'手机电量', en:'Battery', u:'%', ue:'%'},
+    {k:'WiFi 信号', en:'WiFi', u:' 格', ue:' bar'}, {k:'抽奖运', en:'Lottery luck'}, {k:'睡眠', en:'Sleep', u:' 小时', ue:'h'},
+    {k:'塞车几率', en:'Traffic jams', plus:1, u:'%', ue:'%', mul:5}, {k:'踩到狗屎几率', en:'Dog-poop chance', plus:1, u:'%', ue:'%', mul:5},
+    {k:'迟到几率', en:'Late-for-work chance', plus:1, u:'%', ue:'%', mul:5}, {k:'外卖送错', en:'Wrong deliveries', plus:1, u:' 次', ue:''},
+    {k:'红灯', en:'Red lights', plus:1, u:' 个', ue:''}, {k:'被老板骂', en:'Scolded by boss', plus:1, u:' 次', ue:'x'},
+  ];
+  let luck = {}, lost = {}, bottomed = false, boostUntil = 0;
+  function resetLuck(){ luck = {}; lost = {}; bottomed = false; LUCK.forEach(l => { if(l.bar) luck[l.k] = 100; lost[l.k] = 0; }); renderLuck(); }
+  const lname = l => lang === 'zh' ? l.k : l.en;
+  function renderLuck(){
+    const el = $('#luck');
+    const hair = lost['头发'] ? `<div class="x">${lang==='zh'?'头发':'Hair'} -${lost['头发']}${lang==='zh'?' 根':''}</div>` : '';
+    el.innerHTML = `<b>「${name || '小人'}」${t('vLuckT')}</b>` + LUCK.filter(l => l.bar).map(l => `<div class="r"><span>${lname(l)}</span><div class="bar"><i style="width:${luck[l.k]}%"></i></div></div>`).join('') + hair;
+  }
+  function deduct(h, mult, crit){
+    const pick = Math.random() < .45 ? LUCK[0] : LUCK[(Math.random()*LUCK.length)|0];
+    const n = (((Math.random()*3)|0) + 1) * (pick.mul || 1) * mult;
+    lost[pick.k] = (lost[pick.k]||0) + n;
+    if(pick.bar) luck[pick.k] = Math.max(0, luck[pick.k] - n);
+    const unit = lang === 'zh' ? (pick.u || '') : (pick.ue ?? '');
+    const txt = `${lname(pick)} ${pick.plus ? '+' : '-'}${n}${unit}`;
+    const at = h.point.clone().add(new T.Vector3(rand(-.25,.25), .25, rand(-.1,.1)));
+    floatText(at, (crit ? '💥' : '') + txt, crit ? '#ff3b3b' : (pick.plus ? '#ff9d5c' : '#c58bff'), crit ? 26 : 19);
+    if(!bottomed && luck['气运'] === 0){ bottomed = true; floatText(new T.Vector3(0,paperY+.5,.1), t('vBottom'), '#ff3b3b', 30); speak('哈哈，衰到贴地喇！继续打！', 'Haha, totally out of luck! Keep going!'); }
+    renderLuck();
+  }
+
+  // ---- 念咒 / 骂佢（边打边讲） ----
+  const MCHANTS = [
+    ['打你个小人头，打到你出门就摔跤！', 'dǎ nǐ gè xiǎo rén tóu, dǎ dào nǐ chū mén jiù shuāi jiāo!'],
+    ['打你个小人手，打到你钱包天天丢！', 'dǎ nǐ gè xiǎo rén shǒu, dǎ dào nǐ qián bāo tiān tiān diū!'],
+    ['打你个小人脚，打到你鞋带天天掉！', 'dǎ nǐ gè xiǎo rén jiǎo, dǎ dào nǐ xié dài tiān tiān diào!'],
+    ['打你个小人嘴，打到你讲话没人理！', 'dǎ nǐ gè xiǎo rén zuǐ, dǎ dào nǐ jiǎng huà méi rén lǐ!'],
+  ];
+  let chantIdx = 0, chanting = false, crec = null, autoQ = [], autoT = 0;
+  function chantLine(){ return dialect === 'mand' ? MCHANTS[chantIdx % MCHANTS.length] : [CHANTS[chantIdx % CHANTS.length][0], '']; }
+  function randomHit(){ const x = rand(-PW/2+.12, PW/2-.12), z = paperZ + rand(-PH/2+.15, PH/2-.15); return {point:new T.Vector3(x,paperY,z), uv:new T.Vector2(x/PW+.5, (paperZ-z)/PH+.5)}; }
+  function onSpoken(txt){
+    txt = (txt || '').trim(); if(!txt) return;
+    const short = [...txt].length > 14 ? [...txt].slice(0,14).join('') + '…' : txt;
+    floatText(new T.Vector3(rand(-.2,.2), paperY+.55, rand(-.2,.3)), `「${short}」`, '#ffffff', 26);
+    const len = [...txt.replace(/\s/g,'')].length;
+    const hitName = name && normZh(txt).includes(normZh(name));
+    const isChant = similarity(txt, [chantLine()[0]]) > .5;
+    const n = Math.max(3, Math.min(10, Math.ceil(len/2))) + (isChant ? 4 : 0);
+    boostUntil = performance.now() + 3500;
+    for(let i=0;i<n;i++) autoQ.push({crit: hitName || isChant});
+    if(hitName) floatText(new T.Vector3(0,paperY+.75,0), t('vNameCrit'), '#ff3b3b', 28);
+    else if(isChant){ floatText(new T.Vector3(0,paperY+.75,0), t('vChantOK'), '#ffd34d', 28); chantIdx++; renderChant(); }
+    shakeAmt = .06;
+  }
+  function renderChant(){
+    const c = chantLine(), el = $('#chantBox'); if(!el) return;
+    el.innerHTML = `<div class="lbl">${t('vChantT')}</div><div class="zh">${c[0]}</div>${c[1] ? `<div class="py">${c[1]}</div>` : ''}<div class="lbl" style="margin-top:3px">${t('vChantOr').replace('{n}', name)}</div>`;
+  }
+  function chantToggle(){
+    const btn = $('#vchant');
+    if(chanting){ chanting = false; if(crec) try{ crec.stop(); }catch(e){} btn.classList.remove('rec'); btn.textContent = t('vChantBtn'); return; }
+    chanting = true; btn.classList.add('rec'); btn.textContent = t('vChantStop');
+    const start = () => {
+      if(!chanting) return;
+      try{ crec = new SR(); crec.lang = PHRASES[dialect].code; crec.continuous = true; crec.interimResults = true; }catch(e){ chanting = false; return; }
+      crec.onresult = e => { for(let i=e.resultIndex;i<e.results.length;i++){ const r = e.results[i]; if(r.isFinal) onSpoken(r[0].transcript); else { const hd = $('#heard'); if(hd) hd.textContent = '🎙️ ' + r[0].transcript; } } };
+      let fatal = false;
+      crec.onerror = e => { if(e.error === 'not-allowed' || e.error === 'service-not-allowed' || e.error === 'network'){ fatal = true; } };
+      crec.onend = () => { crec = null; if(chanting && !fatal) setTimeout(start, 150); else if(fatal){ chanting = false; const b = $('#vchant'); if(b){ b.classList.remove('rec'); b.textContent = t('vChantBtn'); } } };
+      try{ crec.start(); }catch(e){}
+    };
+    start();
+  }
+  function hitTools(){
+    tools(`<div class="chant" id="chantBox"></div><div class="heard" id="heard"></div>` +
+      (srBroken
+        ? `<input id="curse" maxlength="30" placeholder="${t('vCurseIn')}"><button class="btn" id="curseBtn" style="padding:10px 14px">${t('vSend')}</button>`
+        : `<button class="btn mic" id="vchant" style="flex:2">${t('vChantBtn')}</button>`) +
+      `<button class="btn ghost" id="vfinish" style="flex:1;${srBroken?'width:100%':''}">${t('vFinish')}</button>`);
+    renderChant();
+    if(srBroken){ const go = () => { onSpoken($('#curse').value); $('#curse').value = ''; }; $('#curseBtn').onclick = go; $('#curse').onkeydown = e => { if(e.key === 'Enter') go(); }; }
+    else $('#vchant').onclick = chantToggle;
+    $('#vfinish').onclick = finish;
+  }
+  function stopChant(){ chanting = false; autoQ = []; if(crec) try{ crec.abort(); }catch(e){} crec = null; }
+
   // 特写：悬空拖鞋，任你拍
   function closeUp(){
     view = 'close'; camTargets(); state = 'hit'; slipper.visible = true; pose(hover, hover, 1);
     setScore(`0${t('hits')}`); hint(t('vHint'));
-    speak('好！拖鞋交俾你，拍到你爽为止！', 'Here\'s the slipper — slap till you feel better!');
-    tools(`<button class="btn ghost" id="vfinish" style="flex:1">${t('vFinish')}</button>`);
-    $('#vfinish').onclick = finish;
+    speak('好！拖鞋交俾你，拍到你爽为止！边打边念佢个名，仲劲！', 'Here\'s the slipper — slap till you feel better! Say their name while you hit — even stronger!', 3200);
+    resetLuck(); $('#luck').style.display = 'block'; hitTools();
   }
   function finish(){
-    state = 'done'; hint(''); tools('');
+    state = 'done'; hint(''); tools(''); stopChant();
     speak('打走小人，好运自然来！', 'Villain gone, good luck comes!', 2200);
     floatText(new T.Vector3(0,paperY+.4,.1), '✨ 好运来 ✨', '#ffe08a', 32); sfx.coin();
     for(let i=0;i<30;i++) cubes.spawn({pos:new T.Vector3(rand(-.5,.5), paperY+.1, paperZ+rand(-.7,.7)), vel:new T.Vector3(rand(-.5,.5), rand(1.5,3), rand(-.5,.5)), g:-3, life:rand(.8,1.4), size:rand(.03,.06), color:[0xffd34d,0xff7a3d,0xffffff][i%3], glow:true, floor:paperY});
     setTimeout(() => {
-      center(`<h2>${t('vDoneT')}</h2><div class="lbl">${hits}${t('hits')}</div><div class="lbl">${PRICES[currency]} ${t('vUnit')}</div><button class="btn gold" id="again">${t('vAgain')}</button>`);
-      $('#again').onclick = () => { center(''); view = 'wide'; camTargets(); slipper.visible = false; resetPaper(); name = ''; refusals = 0; nameUI(); speak('仲有边个？俾个名我。', 'Who else? Give me a name.'); };
+      const top = LUCK.filter(l => lost[l.k]).sort((a,b) => lost[b.k]-lost[a.k]).slice(0,6)
+        .map(l => `${lname(l)} ${l.plus?'+':'-'}${lost[l.k]}${lang==='zh'?(l.u||''):(l.ue??'')}`).join(' · ');
+      center(`<h2>${t('vDoneT')}</h2><div class="lbl">${hits}${t('hits')}</div><div style="color:#c58bff;font-size:14px;max-width:320px">${top}</div><div class="lbl">${PRICES[currency]} ${t('vUnit')}</div><button class="btn gold" id="again">${t('vAgain')}</button>`);
+      $('#again').onclick = () => { center(''); $('#luck').style.display = 'none'; view = 'wide'; camTargets(); slipper.visible = false; resetPaper(); name = ''; refusals = 0; nameUI(); speak('仲有边个？俾个名我。', 'Who else? Give me a name.'); };
     }, 1200);
   }
   setTimeout(() => { speak('靓仔靓女，你要做咩呀？', 'Hey there, what do you want?'); askUI(); }, 400);
@@ -824,6 +967,8 @@ function VillainGame(){
   function applyHit(h){
     hits++; setScore(`${hits}${t('hits')}`);
     sfx.slap(); buzz(25); shakeAmt = .035;
+    const boosted = performance.now() < boostUntil, crit = h.crit || Math.random() < .08;
+    deduct(h, (boosted ? 2 : 1) * (crit ? 3 : 1), crit);
     const pos = pGeo.attributes.position, lp = paper.worldToLocal(h.point.clone()), r = .3;
     for(let i=0;i<pos.count;i++){
       const dx = pos.getX(i)-lp.x, dy = pos.getY(i)-lp.y, d = Math.sqrt(dx*dx+dy*dy);
@@ -836,18 +981,16 @@ function VillainGame(){
     if(hits > 25 && holes < 40 && Math.random() < .25){ holes++; g.save(); g.globalCompositeOperation = 'destination-out'; g.fillRect(cx+((rand(-3,3))|0)*2, cy+((rand(-3,3))|0)*2, 3, 3); g.restore(); }
     pTex.needsUpdate = true;
     for(let i=0;i<6;i++) cubes.spawn({pos:h.point.clone(), vel:new T.Vector3(rand(-1.2,1.2),rand(1,2.2),rand(-1.2,1.2)), life:rand(.4,.8), size:rand(.025,.05), color:[0xe8d29a,0xc9b07a,0x7a6a50][i%3], floor:paperY});
-    if(hits % 3 === 0) floatText(h.point.clone().add(new T.Vector3(0,.2,0)), ['啪！','啪啪！','打！','嘭！'][hits%4], '#ffc94d', 22 + Math.min(hits,60)*.25);
     if(hits % 15 === 0){ const c = CHANTS[(hits/15-1) % CHANTS.length]; speak(c[0], c[1], 2200); }
     if(hits % 50 === 0) floatText(new T.Vector3(0,paperY+.5,.1), `🔥 ${hits} ${lang==='zh'?'下！':'hits!'}`, '#ff7a3d', 34);
   }
-  G.down = (p) => {
-    if(state !== 'hit') return;
-    const h = hitAt(p); if(!h) return;
+  G.down = (p) => { if(state !== 'hit') return; const h = hitAt(p); if(h) slapAt(h); };
+  function slapAt(h){
     if(anim && !anim.applied) applyHit(anim.hit); // 拍得快都照计
     const hitPose = {p:new T.Vector3(h.point.x, paperY+.07, h.point.z+.04), r:new T.Euler(0, rand(-.35,.35), 0)};
-    const raised = {p:new T.Vector3(h.point.x+.1, paperY+.45, h.point.z+.25), r:new T.Euler(-1.1, rand(-.2,.2), .15)};
+    const raised = {p:new T.Vector3(h.point.x+.1, paperY+.5, h.point.z+.25), r:new T.Euler(-1.1, rand(-.2,.2), .15)};
     anim = {t:0, from:cur(), raised, hitPose, hit:h, applied:false};
-  };
+  }
   G.fit = a => { aspect = a; camTargets(); G.camPos.copy(camTarget); G.camLook.copy(lookTarget); };
   let flameT = 0, idleT = 0;
   G.update = dt => {
@@ -883,10 +1026,20 @@ function VillainGame(){
     flamesM.forEach((f,i) => { const s = 1 + Math.sin(now/70 + i*2)*.15; f.scale.set(1, s, 1); });
     if(flameT <= 0){ flameT = .12; for(const c of candles) if(Math.random()<.5) cubes.spawn({pos:c.clone().add(new T.Vector3(0,.06,0)), vel:new T.Vector3(rand(-.05,.05),.5,0), g:.2, life:.4, size:.03, color:0xffa040, glow:true});
       for(const c of incense) if(Math.random() < .3) cubes.spawn({pos:c.clone(), vel:new T.Vector3(rand(-.03,.03),.25,0), g:0, life:2.5, size:.035, color:0xbbbbbb}); }
-    candleLight.intensity = 1.3 + ((now/120|0)%3)*.08;
+    candleLight.intensity = (view === 'close' ? .45 : .9) + ((now/120|0)%3)*.06;
+    if(autoQ.length && state === 'hit'){ autoT -= dt; if(autoT <= 0){ autoT = .12; const a = autoQ.shift(), h = randomHit(); h.crit = a.crit; slapAt(h); } }
+    // 灯泡闪、灯笼摇、符纸飘、红眼眨
+    if(bulbOff > 0){ bulbOff -= dt; bulbLight.intensity = 0; bulb.material.color.set(0x332a20); }
+    else { bulbLight.intensity = .7 + Math.random()*.15; bulb.material.color.set(0xfff0b0); if(Math.random() < .006) bulbOff = rand(.05,.5); }
+    lanterns.forEach((l,i) => { l.rotation.z = Math.sin(now/900 + i*2)*.08; l.rotation.x = Math.sin(now/1300 + i)*.05; });
+    fus.forEach((f,i) => { f.rotation.x = Math.sin(now/500 + i*1.7)*.18; });
+    eyeT -= dt; eyes.visible = eyeT < .9 && !(eyeT > .4 && eyeT < .5); if(eyeT < 0) eyeT = rand(4,9);
+    bucketLight.intensity = 1 + Math.random()*.5;
+    if(Math.random() < .5) cubes.spawn({pos:bucketFire.clone().add(new T.Vector3(rand(-.15,.15),0,rand(-.15,.15))), vel:new T.Vector3(rand(-.1,.1),rand(.6,1.1),rand(-.1,.1)), g:.6, life:rand(.3,.6), size:rand(.04,.08), color:[0xff7a1a,0xffc040,0xff3d10][(Math.random()*3)|0], glow:true});
+    if(Math.random() < .08) cubes.spawn({pos:bucketFire.clone().add(new T.Vector3(0,.2,0)), vel:new T.Vector3(rand(-.1,.1),.5,0), g:0, life:2.5, size:.06, color:0x333333});
     cubes.update(dt);
   };
-  G.stop = () => { cubes.clear(); if(rec){ try{ rec.abort(); }catch(e){} rec = null; } };
+  G.stop = () => { cubes.clear(); stopChant(); if(rec){ try{ rec.abort(); }catch(e){} rec = null; } };
   return G;
 }
 

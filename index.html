@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>解压小铺</title>
+<style>
+  :root{--bg:#1b1622;--card:#2a2233;--fg:#f5efe6;--muted:#b9adc4;--accent:#ff5d5d;--gold:#ffc94d}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden;user-select:none}
+  .screen{position:fixed;inset:0;display:none;flex-direction:column}
+  .screen.on{display:flex}
+  #home{overflow-y:auto;padding:24px 16px 40px;align-items:center}
+  h1{margin:8px 0 4px;font-size:34px;letter-spacing:2px}
+  .sub{color:var(--muted);margin:0 0 18px;text-align:center}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;max-width:520px}
+  .card{background:var(--card);border-radius:16px;padding:18px 12px;text-align:center;cursor:pointer;position:relative;border:2px solid transparent;transition:transform .1s}
+  .card:active{transform:scale(.96)}
+  .card .ico{font-size:44px}
+  .card b{display:block;margin-top:6px;font-size:18px}
+  .card span{color:var(--muted);font-size:13px}
+  .card.locked::after{content:"🔒";position:absolute;top:8px;right:10px;font-size:18px}
+  .paybox{width:100%;max-width:520px;background:linear-gradient(135deg,#3a2448,#2a2233);border-radius:16px;padding:16px;margin-bottom:16px;text-align:center}
+  .paybox .price{font-size:30px;font-weight:800;color:var(--gold)}
+  .cur{display:flex;gap:8px;justify-content:center;margin:10px 0}
+  .cur button{background:#ffffff14;color:var(--fg);border:1px solid #ffffff30;border-radius:999px;padding:6px 12px;font-size:14px}
+  .cur button.sel{background:var(--gold);color:#222;border-color:var(--gold)}
+  .btn{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:12px 22px;font-size:17px;font-weight:700;cursor:pointer}
+  .btn.ghost{background:#ffffff1a}
+  .small{font-size:12px;color:var(--muted);margin-top:8px}
+  #game header{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0006;position:relative;z-index:2}
+  #game header .t{flex:1;font-weight:700;font-size:17px}
+  #game header .score{color:var(--gold);font-weight:700}
+  #cv{flex:1;width:100%;touch-action:none;display:block}
+  #tools{display:flex;gap:8px;padding:8px 12px;background:#0006;align-items:center;flex-wrap:wrap}
+  #tools input{flex:1;min-width:0;padding:9px 10px;border-radius:10px;border:0;font-size:16px}
+  #tools:empty{display:none}
+  .modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:10;padding:16px}
+  .modal.on{display:flex}
+  .modal .box{background:#fff;color:#222;border-radius:18px;padding:22px;max-width:360px;width:100%;text-align:center}
+  .modal .box h3{margin:0 0 6px}
+  .modal .box p{color:#555;font-size:14px}
+  .tag{display:inline-block;background:#ffe9a8;color:#7a5600;border-radius:6px;padding:2px 8px;font-size:12px}
+</style>
+</head>
+<body>
+
+<section id="home" class="screen on">
+  <h1>解压小铺</h1>
+  <p class="sub">压力大？进来发泄一下。<br>纯属游戏，打完记得深呼吸 😮‍💨</p>
+
+  <div class="paybox" id="paybox">
+    <div>一次付费 · 全部玩法任玩 24 小时</div>
+    <div class="price" id="priceTxt">RM 0.50</div>
+    <div class="cur" id="curSel">
+      <button data-c="MYR" class="sel">马币</button>
+      <button data-c="HKD">港币</button>
+      <button data-c="USD">美金</button>
+    </div>
+    <button class="btn" id="payBtn">付费解锁</button>
+    <div class="small" id="unlockInfo"></div>
+  </div>
+
+  <div class="grid" id="modeGrid"></div>
+  <p class="small" style="margin-top:20px;text-align:center">所有内容均为卡通游戏，请勿用于伤害或骚扰任何真实人士。</p>
+</section>
+
+<section id="game" class="screen">
+  <header>
+    <button class="btn ghost" id="backBtn" style="padding:6px 12px;font-size:15px">← 返回</button>
+    <div class="t" id="gTitle"></div>
+    <div class="score" id="gScore"></div>
+  </header>
+  <canvas id="cv"></canvas>
+  <div id="tools"></div>
+</section>
+
+<div class="modal" id="payModal">
+  <div class="box">
+    <span class="tag">演示模式</span>
+    <h3 style="margin-top:10px">确认付款</h3>
+    <div style="font-size:28px;font-weight:800;margin:6px 0" id="payAmt"></div>
+    <p>这是付款流程的演示版。正式上线时，这里会接入真正的支付渠道（例如 Stripe、Touch 'n Go、FPX、PayMe 等）。</p>
+    <button class="btn" id="confirmPay" style="width:100%">模拟付款成功</button>
+    <button class="btn ghost" id="cancelPay" style="width:100%;margin-top:8px;color:#555;background:#eee">取消</button>
+  </div>
+</div>
+
+<script>
+/* ---------------- 价格 & 解锁 ---------------- */
+const PRICES = { MYR: 'RM 0.50', HKD: 'HK$ 1.00', USD: 'US$ 0.10' };
+const UNLOCK_MS = 24 * 3600 * 1000;
+let currency = 'MYR';
+function store(k, v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k, v);}catch(e){ return null; } }
+let unlockedUntil = +(store('unlockedUntil') || 0);
+const isUnlocked = () => Date.now() < unlockedUntil;
+
+const MODES = [
+  { id:'villain', ico:'🩴', name:'打小人', desc:'写上名字，用拖鞋狂拍' },
+  { id:'saw',     ico:'🪚', name:'锯木头人', desc:'来回拉锯，锯开它' },
+  { id:'plates',  ico:'🍽️', name:'砸盘子', desc:'点哪里砸哪里' },
+  { id:'bubble',  ico:'🫧', name:'捏泡泡纸', desc:'噗噗噗停不下来' },
+  { id:'punch',   ico:'🥊', name:'打沙包', desc:'连环拳，越打越快' },
+  { id:'scream',  ico:'📢', name:'大喊大叫', desc:'按住屏幕尽情喊' },
+];
+
+const $ = s => document.querySelector(s);
+function renderHome(){
+  $('#priceTxt').textContent = PRICES[currency];
+  $('#modeGrid').innerHTML = MODES.map(m =>
+    `<div class="card ${isUnlocked()?'':'locked'}" data-m="${m.id}"><div class="ico">${m.ico}</div><b>${m.name}</b><span>${m.desc}</span></div>`).join('');
+  if(isUnlocked()){
+    const left = Math.ceil((unlockedUntil-Date.now())/3600000);
+    $('#payBtn').style.display='none';
+    $('#unlockInfo').textContent = `✅ 已解锁，还剩约 ${left} 小时`;
+  } else {
+    $('#payBtn').style.display='';
+    $('#unlockInfo').textContent = '付一次，全部玩法任你玩';
+  }
+}
+$('#curSel').onclick = e => {
+  const c = e.target.dataset.c; if(!c) return;
+  currency = c;
+  document.querySelectorAll('#curSel button').forEach(b=>b.classList.toggle('sel', b.dataset.c===c));
+  renderHome();
+};
+$('#payBtn').onclick = () => { $('#payAmt').textContent = PRICES[currency]; $('#payModal').classList.add('on'); };
+$('#cancelPay').onclick = () => $('#payModal').classList.remove('on');
+$('#confirmPay').onclick = () => {
+  unlockedUntil = Date.now() + UNLOCK_MS; store('unlockedUntil', String(unlockedUntil));
+  $('#payModal').classList.remove('on'); renderHome(); sfx.coin();
+};
+$('#modeGrid').onclick = e => {
+  const card = e.target.closest('.card'); if(!card) return;
+  if(!isUnlocked()){ $('#payBtn').click(); return; }
+  startMode(card.dataset.m);
+};
+$('#backBtn').onclick = () => { stopMode(); $('#game').classList.remove('on'); $('#home').classList.add('on'); renderHome(); };
+
+/* ---------------- 声音（合成，不需要音频文件） ---------------- */
+let AC;
+function ac(){ if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(AC && AC.state==='suspended') AC.resume(); return AC; }
+function noise(dur, {freq=1000, q=1, vol=.5, type='bandpass', decay=true}={}){
+  const a = ac(); if(!a) return;
+  const len = Math.floor(a.sampleRate*dur), buf = a.createBuffer(1,len,a.sampleRate), d = buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i] = (Math.random()*2-1) * (decay ? Math.pow(1-i/len, 2) : 1);
+  const src = a.createBufferSource(); src.buffer = buf;
+  const f = a.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+  const g = a.createGain(); g.gain.value = vol;
+  src.connect(f).connect(g).connect(a.destination); src.start();
+}
+function tone(f1, f2, dur, vol=.3, type='sine'){
+  const a = ac(); if(!a) return;
+  const o = a.createOscillator(), g = a.createGain(); o.type = type;
+  o.frequency.setValueAtTime(f1, a.currentTime); o.frequency.exponentialRampToValueAtTime(f2, a.currentTime+dur);
+  g.gain.setValueAtTime(vol, a.currentTime); g.gain.exponentialRampToValueAtTime(.001, a.currentTime+dur);
+  o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime+dur);
+}
+const sfx = {
+  slap(){ noise(.12,{freq:1800,q:.7,vol:.9}); tone(180,60,.1,.4); },
+  saw(){ noise(.09,{freq:2600+Math.random()*800,q:3,vol:.35}); },
+  crack(){ noise(.35,{freq:4000,q:.5,vol:.7,type:'highpass'}); tone(900,200,.15,.15,'triangle'); },
+  pop(){ tone(700+Math.random()*300, 120, .07, .45, 'square'); noise(.04,{freq:3000,vol:.4}); },
+  punch(){ tone(120,40,.18,.8); noise(.08,{freq:600,vol:.6}); },
+  thud(){ tone(90,30,.3,.8); },
+  fire(){ noise(1.2,{freq:500,q:.4,vol:.3}); },
+  coin(){ tone(988,988,.08,.2,'square'); setTimeout(()=>tone(1319,1319,.25,.2,'square'),80); },
+};
+const buzz = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+
+/* ---------------- 画布 & 公共工具 ---------------- */
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let W=0, H=0, DPR=1, mode=null, raf=0, score=0, particles=[], shake=0, last=0;
+function resize(){
+  DPR = Math.min(window.devicePixelRatio||1, 2);
+  const r = cv.getBoundingClientRect(); W = r.width; H = r.height;
+  cv.width = W*DPR; cv.height = H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+  mode && mode.resize && mode.resize();
+}
+window.addEventListener('resize', resize);
+function setScore(v, label){ score = v; $('#gScore').textContent = (label||'') + v; }
+function rand(a,b){ return a + Math.random()*(b-a); }
+function burst(x,y,n,opt={}){
+  for(let i=0;i<n;i++){
+    const ang = opt.ang!==undefined ? opt.ang + rand(-opt.spread||-1, opt.spread||1) : rand(0,Math.PI*2);
+    const sp = rand(opt.min||2, opt.max||8);
+    particles.push({x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp-(opt.up||0),life:1,decay:rand(.01,.03)*(opt.decayK||1),
+      size:rand(opt.smin||2,opt.smax||5),color:Array.isArray(opt.color)?opt.color[i%opt.color.length]:(opt.color||'#fff'),
+      g:opt.g===undefined?.3:opt.g,rot:rand(0,6),vr:rand(-.3,.3),shape:opt.shape||'dot',pts:opt.shape==='shard'?shardPts(opt.smax||20):null});
+  }
+}
+function shardPts(s){ const n=3+(Math.random()*2|0), p=[]; for(let i=0;i<n;i++){const a=i/n*Math.PI*2+rand(-.4,.4), r=rand(s*.4,s); p.push([Math.cos(a)*r,Math.sin(a)*r]);} return p; }
+function drawParticles(){
+  for(const p of particles){
+    p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= p.decay;
+    ctx.save(); ctx.globalAlpha = Math.max(0,p.life); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle = p.color;
+    if(p.shape==='shard'){ ctx.beginPath(); p.pts.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])); ctx.closePath(); ctx.fill(); ctx.strokeStyle='#0002'; ctx.stroke(); }
+    else if(p.shape==='rect'){ ctx.fillRect(-p.size,-p.size/2,p.size*2,p.size); }
+    else if(p.shape==='text'){ ctx.font=`bold ${p.size}px sans-serif`; ctx.textAlign='center'; ctx.fillText(p.txt,0,0); }
+    else { ctx.beginPath(); ctx.arc(0,0,p.size,0,Math.PI*2); ctx.fill(); }
+    ctx.restore();
+  }
+  particles = particles.filter(p => p.life>0 && p.y < H+100);
+}
+function floatText(x,y,txt,color='#ffc94d',size=22){
+  particles.push({x,y,vx:rand(-.5,.5),vy:-2.2,g:.02,life:1,decay:.012,size,color,rot:0,vr:0,shape:'text',txt});
+}
+function loop(t){
+  const dt = Math.min(50, t-(last||t)); last = t;
+  ctx.save();
+  if(shake>0){ ctx.translate(rand(-shake,shake), rand(-shake,shake)); shake *= .85; if(shake<.3) shake=0; }
+  ctx.clearRect(-50,-50,W+100,H+100);
+  mode.draw(dt);
+  drawParticles();
+  ctx.restore();
+  raf = requestAnimationFrame(loop);
+}
+let ptr = {down:false,x:0,y:0,px:0,py:0};
+function pos(e){ const r = cv.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
+cv.addEventListener('pointerdown', e => { ac(); cv.setPointerCapture(e.pointerId); const p=pos(e); ptr={down:true,x:p.x,y:p.y,px:p.x,py:p.y}; mode&&mode.down&&mode.down(p.x,p.y); });
+cv.addEventListener('pointermove', e => { const p=pos(e); ptr.px=ptr.x; ptr.py=ptr.y; ptr.x=p.x; ptr.y=p.y; mode&&mode.move&&mode.move(p.x,p.y,ptr.down); });
+const up = () => { ptr.down=false; mode&&mode.up&&mode.up(); };
+cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+
+function startMode(id){
+  const m = MODES.find(x=>x.id===id);
+  $('#home').classList.remove('on'); $('#game').classList.add('on');
+  $('#gTitle').textContent = m.ico + ' ' + m.name; $('#tools').innerHTML = '';
+  particles = []; shake = 0; last = 0;
+  mode = GAMES[id](); resize(); mode.init && mode.init();
+  cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
+}
+function stopMode(){ cancelAnimationFrame(raf); mode && mode.stop && mode.stop(); mode = null; }
+function rr(x,y,w,h,r){ ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,r) : ctx.rect(x,y,w,h); }
+
+/* ---------------- 玩法 ---------------- */
+const GAMES = {};
+
+/* 1. 打小人 */
+GAMES.villain = () => {
+  const CHANTS = ['打你个小人头，打到你有气冇定抖！','打你个小人手，打到你有手唔识郁！','打你个小人脚，打到你有鞋唔识着！','打你个小人肚，打到你成日食错药！','打走小人，好运自然来！'];
+  let name = '小人', hits = 0, dents = [], slipper = null, burning = 0, paperAlpha = 1, wob = 0;
+  const GOAL = 60;
+  const box = () => { const w = Math.min(W*.7, 300), h = Math.min(H*.8, w*1.55); return {x:(W-w)/2, y:(H-h)/2, w, h}; };
+  function ui(){
+    $('#tools').innerHTML = `<input id="vname" maxlength="8" placeholder="写上小人的名字/外号（例：坏运气、小人）"><button class="btn" id="vset" style="padding:9px 14px">写上</button>`;
+    $('#vset').onclick = () => { name = ($('#vname').value.trim() || '小人').slice(0,8); $('#vname').blur(); };
+  }
+  return {
+    init(){ ui(); setScore(0,'拍了 '); },
+    down(x,y){
+      if(burning) return;
+      const b = box();
+      slipper = {x,y,t:1};
+      if(x>b.x && x<b.x+b.w && y>b.y && y<b.y+b.h){
+        hits++; setScore(hits,'拍了 '); sfx.slap(); buzz(25); shake = 9; wob = 1;
+        dents.push({x:(x-b.x)/b.w, y:(y-b.y)/b.h, r:rand(10,22), a:rand(0,6)});
+        burst(x,y,8,{color:['#e8d9a8','#c9b47a','#fff'],smin:2,smax:4});
+        if(hits % 6 === 0) floatText(W/2, b.y+30, CHANTS[(hits/6-1)%CHANTS.length], '#ffc94d', 16);
+        if(hits >= GOAL){ burning = 1; sfx.fire(); floatText(W/2,H/2,'🔥 烧走小人！🔥','#ff7a3d',28); }
+      } else { noise(.06,{freq:800,vol:.3}); }
+    },
+    draw(){
+      const b = box();
+      ctx.fillStyle = '#3b1f1f'; ctx.fillRect(0,0,W,H);
+      // 砖墙背景
+      ctx.strokeStyle = '#ffffff10';
+      for(let y=0;y<H;y+=30){ for(let x=((y/30)%2)*30; x<W; x+=60){ ctx.strokeRect(x,y,60,30); } }
+      // 进度条
+      ctx.fillStyle='#0005'; rr(16,12,W-32,10,5); ctx.fill();
+      ctx.fillStyle='#ff5d5d'; rr(16,12,(W-32)*Math.min(1,hits/GOAL),10,5); ctx.fill();
+      if(burning){
+        burning += 1; paperAlpha = Math.max(0, 1 - burning/120);
+        for(let i=0;i<4;i++) burst(rand(b.x,b.x+b.w), b.y+b.h*(1-burning/120), 1,{color:['#ff7a3d','#ffc94d','#ff3d3d'],g:-.15,min:.5,max:2,smin:4,smax:9});
+        if(burning > 150){ burning = 0; hits = 0; dents = []; paperAlpha = 1; setScore(0,'拍了 '); floatText(W/2,H/2,'✨ 好运来 ✨','#ffe08a',30); sfx.coin(); }
+      }
+      wob *= .85;
+      ctx.save(); ctx.globalAlpha = paperAlpha;
+      ctx.translate(b.x+b.w/2, b.y+b.h/2); ctx.rotate(Math.sin(performance.now()/40)*wob*.05); ctx.translate(-b.w/2,-b.h/2);
+      // 纸
+      ctx.fillStyle = '#f3e3b0'; ctx.fillRect(0,0,b.w,b.h);
+      ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 4; ctx.strokeRect(8,8,b.w-16,b.h-16);
+      // 小人（纸公仔）
+      ctx.strokeStyle = '#222'; ctx.lineWidth = 3; ctx.fillStyle = '#f7d9b5';
+      const cx = b.w/2, hy = b.h*.22, hr = b.w*.15;
+      ctx.beginPath(); ctx.arc(cx,hy,hr,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      const dizzy = hits>15;
+      ctx.font = `bold ${hr*.5}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#222';
+      ctx.fillText(dizzy?'✖':'•', cx-hr*.4, hy-hr*.1); ctx.fillText(dizzy?'✖':'•', cx+hr*.4, hy-hr*.1);
+      ctx.beginPath(); dizzy ? ctx.arc(cx,hy+hr*.55,hr*.25,Math.PI,0) : ctx.arc(cx,hy+hr*.25,hr*.25,0,Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx,hy+hr); ctx.lineTo(cx,b.h*.62);
+      ctx.moveTo(cx-b.w*.28,b.h*.4); ctx.lineTo(cx+b.w*.28,b.h*.4);
+      ctx.moveTo(cx,b.h*.62); ctx.lineTo(cx-b.w*.2,b.h*.85); ctx.moveTo(cx,b.h*.62); ctx.lineTo(cx+b.w*.2,b.h*.85); ctx.stroke();
+      // 名字
+      ctx.fillStyle = '#c0392b'; ctx.font = `bold ${Math.min(34, b.w*.85/Math.max(2,name.length))}px sans-serif`;
+      ctx.fillText(name, cx, b.h*.52);
+      // 拍痕
+      for(const d of dents){
+        ctx.save(); ctx.translate(d.x*b.w, d.y*b.h); ctx.rotate(d.a);
+        ctx.fillStyle='#0000002a'; ctx.beginPath(); ctx.ellipse(0,0,d.r*1.4,d.r*.7,0,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle='#0000004a'; ctx.lineWidth=1.5; ctx.beginPath();
+        for(let i=0;i<5;i++){ const a=i*1.3; ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*d.r*1.6, Math.sin(a)*d.r); } ctx.stroke();
+        ctx.restore();
+      }
+      ctx.restore();
+      // 拖鞋
+      if(slipper){
+        slipper.t -= .08;
+        if(slipper.t <= 0) slipper = null;
+        else {
+          ctx.save(); ctx.translate(slipper.x+20, slipper.y-10); ctx.rotate(-.6 + (1-slipper.t)*.3);
+          ctx.globalAlpha = Math.min(1, slipper.t*2);
+          ctx.fillStyle='#2e86de'; rr(-22,-55,44,95,22); ctx.fill();
+          ctx.strokeStyle='#fff'; ctx.lineWidth=6; ctx.beginPath(); ctx.arc(0,-15,18,Math.PI*1.1,Math.PI*1.9); ctx.stroke();
+          ctx.restore();
+        }
+      }
+      if(hits===0 && !burning){ ctx.fillStyle='#fff9'; ctx.font='15px sans-serif'; ctx.textAlign='center'; ctx.fillText('👆 点纸公仔用拖鞋打！', W/2, H-20); }
+    }
+  };
+};
+
+/* 2. 锯木头人 */
+GAMES.saw = () => {
+  let dummy, cuts = 0, cutY = null, progress = 0, lastDir = 0, sawSoundT = 0, falling = null, respawn = 0;
+  const dims = () => { const h = Math.min(H*.75, 460), w = h*.42; return {x:(W-w)/2, y:H-h-20, w, h}; };
+  function drawDummy(d){
+    const {x,y,w,h} = d;
+    // 木头身体
+    ctx.fillStyle='#c98b4b'; ctx.strokeStyle='#7a4a1f'; ctx.lineWidth=3;
+    rr(x+w*.15, y+h*.28, w*.7, h*.5, 18); ctx.fill(); ctx.stroke();
+    // 头
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h*.15, w*.32, h*.13, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    // 年轮纹
+    ctx.strokeStyle='#a8692f'; ctx.lineWidth=2;
+    for(let i=0;i<5;i++){ ctx.beginPath(); ctx.moveTo(x+w*.25, y+h*(.34+i*.09)); ctx.bezierCurveTo(x+w*.4,y+h*(.32+i*.09),x+w*.6,y+h*(.37+i*.09),x+w*.75,y+h*(.34+i*.09)); ctx.stroke(); }
+    // 手
+    ctx.strokeStyle='#7a4a1f'; ctx.lineWidth=12; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(x+w*.16,y+h*.34); ctx.lineTo(x-w*.12,y+h*.5); ctx.moveTo(x+w*.84,y+h*.34); ctx.lineTo(x+w*1.12,y+h*.5); ctx.stroke();
+    // 腿
+    ctx.beginPath(); ctx.moveTo(x+w*.35,y+h*.78); ctx.lineTo(x+w*.3,y+h); ctx.moveTo(x+w*.65,y+h*.78); ctx.lineTo(x+w*.7,y+h); ctx.stroke();
+    ctx.lineCap='butt';
+    // 脸
+    ctx.fillStyle='#3b2412'; const fy = y+h*.14;
+    const scared = progress > .3;
+    ctx.beginPath(); ctx.arc(x+w*.38, fy, scared?6:4, 0, Math.PI*2); ctx.arc(x+w*.62, fy, scared?6:4, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); scared ? ctx.ellipse(x+w/2, fy+h*.05, 8, 10, 0, 0, Math.PI*2) : ctx.arc(x+w/2, fy+h*.03, 10, 0, Math.PI);
+    scared ? ctx.fill() : (ctx.strokeStyle='#3b2412', ctx.lineWidth=3, ctx.stroke());
+  }
+  function drawSaw(x,y){
+    ctx.save(); ctx.translate(x,y);
+    ctx.fillStyle='#c8d0d8'; ctx.strokeStyle='#6b7680'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(-90,-14); ctx.lineTo(60,-14); ctx.lineTo(60,10);
+    for(let i=60;i>-90;i-=10){ ctx.lineTo(i-5,16); ctx.lineTo(i-10,10); }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#b5442c'; rr(58,-22,46,36,10); ctx.fill();
+    ctx.fillStyle='#3a1a12'; rr(70,-12,22,16,6); ctx.fill();
+    ctx.restore();
+  }
+  return {
+    init(){ dummy = dims(); setScore(0,'锯开 '); },
+    resize(){ dummy = dims(); },
+    down(x,y){
+      if(falling) return;
+      const d = dummy;
+      if(cutY===null && y>d.y+d.h*.05 && y<d.y+d.h*.9) cutY = y;
+    },
+    move(x,y,isDown){
+      if(!isDown || falling || cutY===null) return;
+      const dx = x - ptr.px, d = dummy;
+      if(Math.abs(dx) < 1) return;
+      const dir = Math.sign(dx);
+      if(x > d.x-150 && x < d.x+d.w+150){
+        progress += Math.abs(dx)/ (d.w*9) * (dir!==lastDir ? 1.6 : 1);
+        lastDir = dir;
+        const now = performance.now();
+        if(now - sawSoundT > 70){ sfx.saw(); sawSoundT = now; buzz(8); }
+        const edge = d.x + d.w*.15 + d.w*.7*Math.min(1,progress);
+        burst(edge, cutY+4, 2, {color:['#e3b77a','#c98b4b','#f2d3a1'],min:1,max:4,smin:1.5,smax:3,shape:'rect'});
+        shake = Math.max(shake, 1.5);
+        if(progress >= 1){
+          cuts++; setScore(cuts,'锯开 '); sfx.crack(); sfx.thud(); buzz(80); shake = 14;
+          falling = {cutY, vx: rand(-4,4), vy: -6, rot:0, vr: rand(-.08,.08), ox:0, oy:0, t:0};
+          burst(W/2, cutY, 50, {color:['#e3b77a','#c98b4b','#f2d3a1'],min:3,max:12,shape:'rect',smin:2,smax:5});
+          floatText(W/2, cutY-40, ['咔嚓！','一刀两断！','爽！','木屑横飞！'][cuts%4], '#ffc94d', 30);
+        }
+      }
+    },
+    up(){},
+    draw(){
+      const d = dummy;
+      // 背景：木工房
+      const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#2b3a4a'); g.addColorStop(1,'#1a222c'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='#5a3d22'; ctx.fillRect(0,H-22,W,22);
+      if(falling){
+        falling.t++;
+        falling.vy += .5; falling.ox += falling.vx; falling.oy += falling.vy; falling.rot += falling.vr;
+        if(falling.oy > H){ /* 已掉出画面 */ }
+        // 下半身
+        ctx.save(); ctx.beginPath(); ctx.rect(0,falling.cutY,W,H); ctx.clip(); drawDummy(d); ctx.restore();
+        // 上半身
+        ctx.save(); ctx.translate(W/2+falling.ox, falling.cutY+falling.oy); ctx.rotate(falling.rot); ctx.translate(-W/2,-falling.cutY);
+        ctx.beginPath(); ctx.rect(0,0,W,falling.cutY); ctx.clip(); drawDummy(d); ctx.restore();
+        if(falling.t > 90){ falling = null; cutY = null; progress = 0; }
+      } else {
+        drawDummy(d);
+        if(cutY!==null){
+          ctx.strokeStyle='#ffffff55'; ctx.setLineDash([6,6]); ctx.lineWidth=1.5;
+          ctx.beginPath(); ctx.moveTo(d.x-20,cutY); ctx.lineTo(d.x+d.w+20,cutY); ctx.stroke(); ctx.setLineDash([]);
+          ctx.fillStyle='#2a1708'; ctx.fillRect(d.x+d.w*.15, cutY-3, d.w*.7*Math.min(1,progress), 6);
+        }
+      }
+      // 进度
+      if(cutY!==null && !falling){ ctx.fillStyle='#0006'; rr(16,12,W-32,10,5); ctx.fill(); ctx.fillStyle='#ffc94d'; rr(16,12,(W-32)*Math.min(1,progress),10,5); ctx.fill(); }
+      // 锯子跟随手指
+      const sy = cutY!==null && !falling ? cutY : ptr.y || H*.4;
+      drawSaw(ptr.x || W*.75, sy);
+      ctx.fillStyle='#fff9'; ctx.font='15px sans-serif'; ctx.textAlign='center';
+      if(cutY===null && !falling) ctx.fillText('👆 按住木头人身上任意位置，然后左右来回拉锯！', W/2, 40);
+    }
+  };
+};
+
+/* 3. 砸盘子 */
+GAMES.plates = () => {
+  let flying = [], n = 0;
+  const COLORS = ['#ffffff','#f6e7c1','#cfe8ff','#ffd6d6','#d9f5d0'];
+  return {
+    init(){ setScore(0,'砸了 '); },
+    down(x,y){ flying.push({sx:W/2, sy:H+40, x:W/2, y:H+40, tx:x, ty:y, t:0, c:COLORS[n%COLORS.length], r:rand(34,48)}); n++; tone(400,900,.15,.08); },
+    draw(){
+      ctx.fillStyle='#2d2438'; ctx.fillRect(0,0,W,H);
+      // 墙上的瓷砖
+      ctx.strokeStyle='#ffffff0c'; for(let x=0;x<W;x+=50) for(let y=0;y<H;y+=50) ctx.strokeRect(x,y,50,50);
+      for(const p of flying){
+        p.t += .08; const k = Math.min(1,p.t), e = 1-Math.pow(1-k,2);
+        p.x = p.sx + (p.tx-p.sx)*e; p.y = p.sy + (p.ty-p.sy)*e - Math.sin(k*Math.PI)*80;
+        const s = .6 + .4*k;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.t*8); ctx.scale(s,s*.85);
+        ctx.fillStyle=p.c; ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle='#3d6fb6'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,0,p.r*.8,0,Math.PI*2); ctx.stroke();
+        ctx.strokeStyle='#0001'; ctx.beginPath(); ctx.arc(0,0,p.r*.5,0,Math.PI*2); ctx.stroke();
+        ctx.restore();
+        if(k>=1){
+          p.done = true; setScore(++score,'砸了 '); sfx.crack(); buzz(40); shake = 8;
+          burst(p.tx,p.ty,16,{color:[p.c,p.c,'#3d6fb6'],shape:'shard',smin:6,smax:16,min:3,max:11,up:3,decayK:.6});
+          burst(p.tx,p.ty,20,{color:'#ffffff',min:2,max:9,smin:1,smax:2.5});
+          if(score%10===0) floatText(p.tx,p.ty-30,`${score} 只盘子！`, '#ffc94d', 24);
+        }
+      }
+      flying = flying.filter(p=>!p.done);
+      if(score===0){ ctx.fillStyle='#fff9'; ctx.font='15px sans-serif'; ctx.textAlign='center'; ctx.fillText('👆 点屏幕任何地方丢盘子', W/2, H/2); }
+    }
+  };
+};
+
+/* 4. 泡泡纸 */
+GAMES.bubble = () => {
+  let bubbles = [], R = 26;
+  function build(){
+    R = Math.max(20, Math.min(32, W/14)); bubbles = [];
+    const dx = R*2.2, dy = R*1.95;
+    for(let row=0, y=R+16; y < H-R; y+=dy, row++)
+      for(let x = R+10 + (row%2)*dx/2; x < W-R; x+=dx) bubbles.push({x,y,popped:false,t:0});
+  }
+  function pop(x,y){
+    for(const b of bubbles){
+      if(!b.popped && (b.x-x)**2+(b.y-y)**2 < R*R){
+        b.popped = true; b.t = 1; setScore(++score,'噗 '); sfx.pop(); buzz(12);
+        burst(b.x,b.y,5,{color:'#ffffffaa',min:1,max:3,g:0,smin:1,smax:2});
+        if(bubbles.every(q=>q.popped)){ floatText(W/2,H/2,'全部捏完！再来一张','#ffc94d',24); setTimeout(build, 900); }
+      }
+    }
+  }
+  return {
+    init(){ build(); setScore(0,'噗 '); },
+    resize(){ build(); },
+    down: pop, move(x,y,d){ if(d) pop(x,y); },
+    draw(){
+      ctx.fillStyle='#bfe3ef'; ctx.fillRect(0,0,W,H);
+      for(const b of bubbles){
+        if(b.popped){
+          ctx.fillStyle='#9ccbdb'; ctx.beginPath(); ctx.ellipse(b.x,b.y,R*.85,R*.5,.4,0,Math.PI*2); ctx.fill();
+          ctx.strokeStyle='#7fb3c6'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(b.x-R*.5,b.y-R*.2); ctx.lineTo(b.x+R*.4,b.y+R*.25); ctx.stroke();
+        } else {
+          const g = ctx.createRadialGradient(b.x-R*.35,b.y-R*.35,R*.1,b.x,b.y,R);
+          g.addColorStop(0,'#ffffff'); g.addColorStop(.4,'#e6f6fb'); g.addColorStop(1,'#93c9db');
+          ctx.fillStyle=g; ctx.beginPath(); ctx.arc(b.x,b.y,R,0,Math.PI*2); ctx.fill();
+          ctx.strokeStyle='#7fb3c655'; ctx.stroke();
+        }
+      }
+    }
+  };
+};
+
+/* 5. 打沙包 */
+GAMES.punch = () => {
+  let ang = 0, av = 0, combo = 0, lastHit = 0, fists = [];
+  const pivot = () => ({x:W/2, y:20});
+  const L = () => Math.min(H*.45, 300);
+  return {
+    init(){ setScore(0,'拳数 '); },
+    down(x,y){
+      const p = pivot(), len = L();
+      const bx = p.x + Math.sin(ang)*len, by = p.y + Math.cos(ang)*len;
+      fists.push({x,y,t:1,side: x<W/2?1:-1});
+      if(Math.hypot(x-bx, y-(by+len*.35)) < len*.55 + 20){
+        const now = performance.now(); combo = now-lastHit < 600 ? combo+1 : 1; lastHit = now;
+        av += (x<bx ? 1 : -1) * (.04 + Math.min(combo,20)*.004);
+        setScore(++score,'拳数 '); sfx.punch(); buzz(30); shake = 6 + Math.min(combo,15)*.6;
+        burst(x,y,10,{color:['#fff','#ffc94d'],min:2,max:7,g:0,smin:1.5,smax:3});
+        floatText(x,y-20, combo>2 ? `${combo} 连击!` : ['砰!','啪!','嘭!'][score%3], combo>9?'#ff5d5d':'#ffc94d', 18+Math.min(combo,20));
+      }
+    },
+    draw(){
+      ctx.fillStyle='#232a35'; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='#1a1f28'; ctx.fillRect(0,H*.82,W,H*.18);
+      av += -ang*.012; av *= .985; ang += av; ang = Math.max(-1.2,Math.min(1.2,ang));
+      const p = pivot(), len = L();
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(-ang);
+      ctx.strokeStyle='#888'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,len); ctx.stroke();
+      const bw = Math.min(W*.32, 130), bh = len*.75;
+      ctx.fillStyle='#b8312f'; rr(-bw/2, len, bw, bh, bw*.35); ctx.fill();
+      ctx.fillStyle='#8e2321'; ctx.fillRect(-bw/2, len+bh*.15, bw, 10); ctx.fillRect(-bw/2, len+bh*.8, bw, 10);
+      ctx.fillStyle='#ffffff22'; rr(-bw/2+10, len+12, 14, bh-24, 7); ctx.fill();
+      ctx.restore();
+      for(const f of fists){
+        f.t -= .1; ctx.save(); ctx.globalAlpha = Math.max(0,f.t);
+        ctx.font = `${50 + (1-f.t)*20}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.translate(f.x, f.y); ctx.scale(f.side,1); ctx.fillText('🥊',0,0); ctx.restore();
+      }
+      fists = fists.filter(f=>f.t>0);
+      if(score===0){ ctx.fillStyle='#fff9'; ctx.font='15px sans-serif'; ctx.textAlign='center'; ctx.fillText('👆 狂点沙包出拳，连得越快越猛', W/2, H-30); }
+    }
+  };
+};
+
+/* 6. 大喊大叫（按住 = 爆发音浪，可选麦克风） */
+GAMES.scream = () => {
+  let level = 0, holding = false, mic = null, analyser = null, data = null, peak = 0, rings = [], stream = null;
+  async function enableMic(){
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      const a = ac(); mic = a.createMediaStreamSource(stream); analyser = a.createAnalyser(); analyser.fftSize = 512;
+      data = new Uint8Array(analyser.fftSize); mic.connect(analyser);
+      $('#micBtn').textContent = '🎤 麦克风已开'; $('#micBtn').disabled = true;
+    }catch(e){ $('#micBtn').textContent = '无法使用麦克风，按住屏幕也可以'; }
+  }
+  return {
+    init(){
+      setScore(0,'最高音量 ');
+      $('#tools').innerHTML = `<button class="btn" id="micBtn" style="flex:1">🎤 开启麦克风，对着手机大喊</button>`;
+      $('#micBtn').onclick = enableMic;
+    },
+    down(){ holding = true; },
+    up(){ holding = false; },
+    stop(){ if(stream) stream.getTracks().forEach(t=>t.stop()); },
+    draw(){
+      let target = holding ? 1 : 0;
+      if(analyser){ analyser.getByteTimeDomainData(data); let m=0; for(const v of data) m = Math.max(m, Math.abs(v-128)); target = Math.max(target, Math.min(1, m/90)); }
+      level += (target-level)*.2;
+      const pct = Math.round(level*100); if(pct > peak){ peak = pct; setScore(peak,'最高音量 '); }
+      ctx.fillStyle = `hsl(${260 - level*260},45%,${14+level*12}%)`; ctx.fillRect(0,0,W,H);
+      if(level > .25 && Math.random() < level*.6) rings.push({r:40, a:1});
+      for(const r of rings){ r.r += 6 + level*10; r.a -= .02; ctx.strokeStyle = `rgba(255,${200-level*150},80,${r.a})`; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(W/2,H/2,r.r,0,Math.PI*2); ctx.stroke(); }
+      rings = rings.filter(r=>r.a>0);
+      if(level > .6) shake = Math.max(shake, level*10);
+      if(level > .5 && Math.random()<.3) burst(W/2,H/2,3,{color:['#ffc94d','#ff5d5d'],min:4,max:12,g:0});
+      const s = 60 + level*90;
+      ctx.font = `${s}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(level>.7?'😱':level>.35?'😫':'😶', W/2, H/2);
+      ctx.fillStyle='#fff'; ctx.font=`bold ${20+level*30}px sans-serif`;
+      ctx.fillText(level>.7?'啊啊啊啊啊！！！':level>.35?'啊啊啊——':'按住屏幕 / 对麦克风大喊', W/2, H/2 + s*.9);
+      ctx.fillStyle='#0006'; rr(16,12,W-32,14,7); ctx.fill(); ctx.fillStyle='#ff5d5d'; rr(16,12,(W-32)*level,14,7); ctx.fill();
+      if(holding && Math.random()<.25) tone(200+level*400, 150+level*300, .12, .05, 'sawtooth');
+    }
+  };
+};
+
+renderHome();
+</script>
+</body>
+</html>

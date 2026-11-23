@@ -5,40 +5,53 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>解压小铺</title>
 <style>
-  :root{--bg:#1b1622;--card:#2a2233;--fg:#f5efe6;--muted:#b9adc4;--accent:#ff5d5d;--gold:#ffc94d}
+  :root{--bg:#141018;--card:#241d2c;--fg:#f5efe6;--muted:#b4a8bf;--accent:#ff5d5d;--gold:#ffc94d}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden;user-select:none}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:-apple-system,"PingFang HK","PingFang SC","Microsoft JhengHei","Microsoft YaHei",sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
   .screen{position:fixed;inset:0;display:none;flex-direction:column}
   .screen.on{display:flex}
-  #home{overflow-y:auto;padding:24px 16px 40px;align-items:center}
-  h1{margin:8px 0 4px;font-size:34px;letter-spacing:2px}
-  .sub{color:var(--muted);margin:0 0 18px;text-align:center}
-  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;max-width:520px}
-  .card{background:var(--card);border-radius:16px;padding:18px 12px;text-align:center;cursor:pointer;position:relative;border:2px solid transparent;transition:transform .1s}
-  .card:active{transform:scale(.96)}
-  .card .ico{font-size:44px}
-  .card b{display:block;margin-top:6px;font-size:18px}
-  .card span{color:var(--muted);font-size:13px}
-  .card.locked::after{content:"🔒";position:absolute;top:8px;right:10px;font-size:18px}
-  .paybox{width:100%;max-width:520px;background:linear-gradient(135deg,#3a2448,#2a2233);border-radius:16px;padding:16px;margin-bottom:16px;text-align:center}
-  .paybox .price{font-size:30px;font-weight:800;color:var(--gold)}
-  .cur{display:flex;gap:8px;justify-content:center;margin:10px 0}
-  .cur button{background:#ffffff14;color:var(--fg);border:1px solid #ffffff30;border-radius:999px;padding:6px 12px;font-size:14px}
-  .cur button.sel{background:var(--gold);color:#222;border-color:var(--gold)}
-  .btn{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:12px 22px;font-size:17px;font-weight:700;cursor:pointer}
-  .btn.ghost{background:#ffffff1a}
-  .small{font-size:12px;color:var(--muted);margin-top:8px}
-  #game header{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0006;position:relative;z-index:2}
+  #home{overflow-y:auto;padding:22px 16px 40px;align-items:center}
+  h1{margin:6px 0 4px;font-size:34px;letter-spacing:2px}
+  .sub{color:var(--muted);margin:0 0 16px;text-align:center;line-height:1.5}
+  .row{display:flex;gap:8px;justify-content:center;margin:6px 0 14px;flex-wrap:wrap}
+  .pill{background:#ffffff12;color:var(--fg);border:1px solid #ffffff30;border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer}
+  .pill.sel{background:var(--gold);color:#222;border-color:var(--gold)}
+  .cards{display:grid;gap:14px;width:100%;max-width:520px}
+  .card{background:linear-gradient(135deg,#33263f,#211a28);border-radius:20px;padding:20px;cursor:pointer;display:flex;gap:16px;align-items:center;transition:transform .1s;border:1px solid #ffffff14}
+  .card:active{transform:scale(.97)}
+  .card .ico{font-size:52px;filter:drop-shadow(0 6px 10px #0008)}
+  .card b{font-size:21px;display:block}
+  .card span{color:var(--muted);font-size:13px;display:block;margin-top:4px}
+  .card .price{color:var(--gold);font-weight:800;font-size:15px;margin-top:8px}
+  .lbl{font-size:12px;color:var(--muted)}
+  .btn{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:11px 20px;font-size:16px;font-weight:700;cursor:pointer}
+  .btn.ghost{background:#ffffff1c}
+  .btn.gold{background:var(--gold);color:#222}
+  .small{font-size:12px;color:var(--muted);text-align:center}
+  #game header{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#000a;z-index:3}
   #game header .t{flex:1;font-weight:700;font-size:17px}
-  #game header .score{color:var(--gold);font-weight:700}
-  #cv{flex:1;width:100%;touch-action:none;display:block}
-  #tools{display:flex;gap:8px;padding:8px 12px;background:#0006;align-items:center;flex-wrap:wrap}
-  #tools input{flex:1;min-width:0;padding:9px 10px;border-radius:10px;border:0;font-size:16px}
+  #game header .score{color:var(--gold);font-weight:700;font-size:14px;text-align:right}
+  #stage{flex:1;position:relative;overflow:hidden}
+  #stage canvas{display:block;width:100%;height:100%;touch-action:none}
+  #tools{display:flex;gap:8px;padding:10px 12px;background:#000a;align-items:center;flex-wrap:wrap;z-index:3}
   #tools:empty{display:none}
-  .modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:10;padding:16px}
+  #tools input{flex:1;min-width:0;padding:10px;border-radius:10px;border:0;font-size:16px}
+  .chip{background:#ffffff18;border:1px solid #ffffff33;color:#fff;border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer}
+  #bubble{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:#fff;color:#222;border-radius:16px;padding:10px 14px;max-width:min(78vw,320px);font-size:16px;font-weight:700;line-height:1.4;box-shadow:0 8px 24px #0008;pointer-events:none;display:none;z-index:2}
+  #bubble::after{content:"";position:absolute;left:50%;bottom:-9px;margin-left:-9px;border:9px solid transparent;border-bottom:0;border-top-color:#fff}
+  #bubble small{display:block;font-weight:400;color:#777;font-size:13px;margin-top:4px}
+  #hint{position:absolute;left:0;right:0;bottom:14px;text-align:center;color:#fffc;font-size:15px;pointer-events:none;text-shadow:0 2px 6px #000;padding:0 16px}
+  #center{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:2;background:#0007;text-align:center;padding:16px}
+  #center.on{display:flex}
+  #center h2{margin:0;font-size:26px}
+  #lung{position:absolute;left:50%;bottom:44px;width:min(60vw,260px);height:12px;margin-left:calc(min(60vw,260px)/-2);background:#0008;border-radius:6px;overflow:hidden;display:none}
+  #lung i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb36b,#ff4d2e);border-radius:6px}
+  .ft{position:absolute;transform:translate(-50%,-50%);font-weight:900;pointer-events:none;text-shadow:0 3px 8px #000;animation:ft 1.1s ease-out forwards;white-space:nowrap;z-index:2}
+  @keyframes ft{from{opacity:1;margin-top:0}to{opacity:0;margin-top:-70px}}
+  .modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:10;padding:16px}
   .modal.on{display:flex}
   .modal .box{background:#fff;color:#222;border-radius:18px;padding:22px;max-width:360px;width:100%;text-align:center}
-  .modal .box h3{margin:0 0 6px}
+  .modal .box h3{margin:8px 0 4px}
   .modal .box p{color:#555;font-size:14px}
   .tag{display:inline-block;background:#ffe9a8;color:#7a5600;border-radius:6px;padding:2px 8px;font-size:12px}
 </style>
@@ -46,104 +59,109 @@
 <body>
 
 <section id="home" class="screen on">
-  <h1>解压小铺</h1>
-  <p class="sub">压力大？进来发泄一下。<br>纯属游戏，打完记得深呼吸 😮‍💨</p>
-
-  <div class="paybox" id="paybox">
-    <div>一次付费 · 全部玩法任玩 24 小时</div>
-    <div class="price" id="priceTxt">RM 0.50</div>
-    <div class="cur" id="curSel">
-      <button data-c="MYR" class="sel">马币</button>
-      <button data-c="HKD">港币</button>
-      <button data-c="USD">美金</button>
-    </div>
-    <button class="btn" id="payBtn">付费解锁</button>
-    <div class="small" id="unlockInfo"></div>
+  <h1 data-i="title"></h1>
+  <p class="sub" data-i="sub"></p>
+  <div class="lbl" data-i="langLbl"></div>
+  <div class="row" id="langSel">
+    <button class="pill sel" data-l="zh">中文</button>
+    <button class="pill" data-l="en">English</button>
   </div>
-
-  <div class="grid" id="modeGrid"></div>
-  <p class="small" style="margin-top:20px;text-align:center">所有内容均为卡通游戏，请勿用于伤害或骚扰任何真实人士。</p>
+  <div class="lbl" data-i="curLbl"></div>
+  <div class="row" id="curSel">
+    <button class="pill sel" data-c="MYR">RM 马币</button>
+    <button class="pill" data-c="HKD">HK$ 港币</button>
+    <button class="pill" data-c="USD">US$ 美金</button>
+  </div>
+  <div class="cards">
+    <div class="card" data-g="villain"><div class="ico">🩴</div><div><b data-i="vName"></b><span data-i="vDesc"></span><div class="price"><span class="p"></span> <span data-i="vUnit" style="display:inline;color:inherit"></span></div></div></div>
+    <div class="card" data-g="smoke"><div class="ico">🚬</div><div><b data-i="sName"></b><span data-i="sDesc"></span><div class="price"><span class="p"></span> <span data-i="sUnit" style="display:inline;color:inherit"></span></div></div></div>
+  </div>
+  <p class="small" style="margin-top:22px" data-i="foot"></p>
 </section>
 
 <section id="game" class="screen">
   <header>
-    <button class="btn ghost" id="backBtn" style="padding:6px 12px;font-size:15px">← 返回</button>
+    <button class="btn ghost" id="backBtn" style="padding:6px 12px;font-size:15px" data-i="back"></button>
     <div class="t" id="gTitle"></div>
     <div class="score" id="gScore"></div>
   </header>
-  <canvas id="cv"></canvas>
+  <div id="stage">
+    <div id="bubble"></div>
+    <div id="hint"></div>
+    <div id="lung"><i></i></div>
+    <div id="center"></div>
+  </div>
   <div id="tools"></div>
 </section>
 
 <div class="modal" id="payModal">
   <div class="box">
-    <span class="tag">演示模式</span>
-    <h3 style="margin-top:10px">确认付款</h3>
-    <div style="font-size:28px;font-weight:800;margin:6px 0" id="payAmt"></div>
-    <p>这是付款流程的演示版。正式上线时，这里会接入真正的支付渠道（例如 Stripe、Touch 'n Go、FPX、PayMe 等）。</p>
-    <button class="btn" id="confirmPay" style="width:100%">模拟付款成功</button>
-    <button class="btn ghost" id="cancelPay" style="width:100%;margin-top:8px;color:#555;background:#eee">取消</button>
+    <span class="tag" data-i="demo"></span>
+    <h3 id="payWhat"></h3>
+    <div style="font-size:30px;font-weight:800;margin:6px 0" id="payAmt"></div>
+    <p data-i="demoTxt"></p>
+    <button class="btn" id="confirmPay" style="width:100%" data-i="payOk"></button>
+    <button class="btn" id="cancelPay" style="width:100%;margin-top:8px;color:#555;background:#eee" data-i="cancel"></button>
   </div>
 </div>
 
+<script src="vendor/three.min.js"></script>
 <script>
-/* ---------------- 价格 & 解锁 ---------------- */
-const PRICES = { MYR: 'RM 0.50', HKD: 'HK$ 1.00', USD: 'US$ 0.10' };
-const UNLOCK_MS = 24 * 3600 * 1000;
-let currency = 'MYR';
-function store(k, v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k, v);}catch(e){ return null; } }
-let unlockedUntil = +(store('unlockedUntil') || 0);
-const isUnlocked = () => Date.now() < unlockedUntil;
-
-const MODES = [
-  { id:'villain', ico:'🩴', name:'打小人', desc:'写上名字，用拖鞋狂拍' },
-  { id:'saw',     ico:'🪚', name:'锯木头人', desc:'来回拉锯，锯开它' },
-  { id:'plates',  ico:'🍽️', name:'砸盘子', desc:'点哪里砸哪里' },
-  { id:'bubble',  ico:'🫧', name:'捏泡泡纸', desc:'噗噗噗停不下来' },
-  { id:'punch',   ico:'🥊', name:'打沙包', desc:'连环拳，越打越快' },
-  { id:'scream',  ico:'📢', name:'大喊大叫', desc:'按住屏幕尽情喊' },
-];
-
-const $ = s => document.querySelector(s);
-function renderHome(){
-  $('#priceTxt').textContent = PRICES[currency];
-  $('#modeGrid').innerHTML = MODES.map(m =>
-    `<div class="card ${isUnlocked()?'':'locked'}" data-m="${m.id}"><div class="ico">${m.ico}</div><b>${m.name}</b><span>${m.desc}</span></div>`).join('');
-  if(isUnlocked()){
-    const left = Math.ceil((unlockedUntil-Date.now())/3600000);
-    $('#payBtn').style.display='none';
-    $('#unlockInfo').textContent = `✅ 已解锁，还剩约 ${left} 小时`;
-  } else {
-    $('#payBtn').style.display='';
-    $('#unlockInfo').textContent = '付一次，全部玩法任你玩';
+/* =========================================================
+   文字 / 语言
+   ========================================================= */
+const I18N = {
+  zh: {
+    title:'解压小铺', sub:'压力大？进来发泄一下。<br>纯属游戏，玩完记得深呼吸 😮‍💨', langLbl:'语言', curLbl:'付款货币',
+    vName:'打小人', vDesc:'鹅颈桥师傅亲自出手，用拖鞋帮你打走小人', vUnit:'/ 每打一张',
+    sName:'抽根烟', sDesc:'按住吸，放开呼，看烟慢慢散开', sUnit:'/ 每一根',
+    foot:'所有内容均为虚拟游戏。请勿用于伤害或骚扰任何真实人士。虚拟香烟零尼古丁，现实中吸烟有害健康。',
+    back:'← 返回', demo:'演示模式', demoTxt:'这是付款流程的演示版，正式上线时会接入真正的支付渠道（Stripe / Touch \'n Go / FPX / PayMe 等）。',
+    payOk:'模拟付款成功', cancel:'取消', payV:'打小人一次', payS:'香烟一根',
+    puffs:'口', cigs:'根', hits:'下',
+    sLight:'点一根？', sLightBtn:'🔥 买一根并点火', sHint:'按住 = 吸 · 放开 = 呼', sDone:'抽完了', sAgain:'🚬 再来一根', cough:'咳咳咳！',
+    vTalk:'同师傅讲你想做咩…', vSend:'讲', vNameIn:'写上小人的名字 / 外号', vGive:'交俾师傅', vHint:'👆 点张纸，师傅帮你打！', vAgain:'🩴 再打一个', vDoneT:'小人已打走 ✨',
+  },
+  en: {
+    title:'Stress Shop', sub:'Stressed out? Come let it out.<br>It\'s just a game — take a deep breath after 😮‍💨', langLbl:'Language', curLbl:'Currency',
+    vName:'Villain Hitting', vDesc:'A Hong Kong "da siu yan" master beats your villain with a slipper', vUnit:'/ per villain',
+    sName:'Smoke Break', sDesc:'Hold to inhale, release to exhale, watch it drift', sUnit:'/ per cigarette',
+    foot:'Everything here is a virtual game. Do not use it to harm or harass real people. Virtual cigarettes, zero nicotine — real smoking harms your health.',
+    back:'← Back', demo:'DEMO', demoTxt:'This is a demo of the checkout. The live version would connect to a real payment provider (Stripe / Touch \'n Go / FPX / PayMe...).',
+    payOk:'Simulate payment', cancel:'Cancel', payV:'One villain session', payS:'One cigarette',
+    puffs:' puffs', cigs:' cigs', hits:' hits',
+    sLight:'Light one up?', sLightBtn:'🔥 Buy one & light it', sHint:'Hold = inhale · Release = exhale', sDone:'Finished', sAgain:'🚬 Another one', cough:'*cough cough*',
+    vTalk:'Tell the master what you want…', vSend:'Say', vNameIn:'Villain\'s name / nickname', vGive:'Hand it over', vHint:'👆 Tap the paper — the master will hit it!', vAgain:'🩴 Another villain', vDoneT:'Villain banished ✨',
   }
+};
+let lang = 'zh', currency = 'MYR';
+const PRICES = { MYR:'RM 0.50', HKD:'HK$ 1.00', USD:'US$ 0.10' };
+const t = k => I18N[lang][k];
+const $ = s => document.querySelector(s);
+function applyI18n(){
+  document.querySelectorAll('[data-i]').forEach(el => el.innerHTML = t(el.dataset.i));
+  document.querySelectorAll('.card .p').forEach(el => el.textContent = PRICES[currency]);
+  document.documentElement.lang = lang === 'zh' ? 'zh' : 'en';
 }
-$('#curSel').onclick = e => {
-  const c = e.target.dataset.c; if(!c) return;
-  currency = c;
-  document.querySelectorAll('#curSel button').forEach(b=>b.classList.toggle('sel', b.dataset.c===c));
-  renderHome();
-};
-$('#payBtn').onclick = () => { $('#payAmt').textContent = PRICES[currency]; $('#payModal').classList.add('on'); };
-$('#cancelPay').onclick = () => $('#payModal').classList.remove('on');
-$('#confirmPay').onclick = () => {
-  unlockedUntil = Date.now() + UNLOCK_MS; store('unlockedUntil', String(unlockedUntil));
-  $('#payModal').classList.remove('on'); renderHome(); sfx.coin();
-};
-$('#modeGrid').onclick = e => {
-  const card = e.target.closest('.card'); if(!card) return;
-  if(!isUnlocked()){ $('#payBtn').click(); return; }
-  startMode(card.dataset.m);
-};
-$('#backBtn').onclick = () => { stopMode(); $('#game').classList.remove('on'); $('#home').classList.add('on'); renderHome(); };
+function pickPill(sel, attr, val){ document.querySelectorAll(sel+' .pill').forEach(b => b.classList.toggle('sel', b.dataset[attr]===val)); }
+$('#langSel').onclick = e => { const l = e.target.dataset.l; if(!l) return; lang = l; pickPill('#langSel','l',l); applyI18n(); };
+$('#curSel').onclick = e => { const c = e.target.dataset.c; if(!c) return; currency = c; pickPill('#curSel','c',c); applyI18n(); };
 
-/* ---------------- 声音（合成，不需要音频文件） ---------------- */
+/* ---------- 付款（演示） ---------- */
+let payCb = null;
+function pay(what, cb){ payCb = cb; $('#payWhat').textContent = what; $('#payAmt').textContent = PRICES[currency]; $('#payModal').classList.add('on'); }
+$('#confirmPay').onclick = () => { $('#payModal').classList.remove('on'); sfx.coin(); const cb = payCb; payCb = null; cb && cb(true); };
+$('#cancelPay').onclick = () => { $('#payModal').classList.remove('on'); const cb = payCb; payCb = null; cb && cb(false); };
+
+/* =========================================================
+   声音（全部用代码合成）
+   ========================================================= */
 let AC;
 function ac(){ if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(AC && AC.state==='suspended') AC.resume(); return AC; }
-function noise(dur, {freq=1000, q=1, vol=.5, type='bandpass', decay=true}={}){
+function noise(dur, {freq=1000, q=1, vol=.5, type='bandpass', curve=2}={}){
   const a = ac(); if(!a) return;
-  const len = Math.floor(a.sampleRate*dur), buf = a.createBuffer(1,len,a.sampleRate), d = buf.getChannelData(0);
-  for(let i=0;i<len;i++) d[i] = (Math.random()*2-1) * (decay ? Math.pow(1-i/len, 2) : 1);
+  const len = Math.max(1, Math.floor(a.sampleRate*dur)), buf = a.createBuffer(1,len,a.sampleRate), d = buf.getChannelData(0);
+  for(let i=0;i<len;i++){ const k=i/len; d[i] = (Math.random()*2-1) * (curve<0 ? Math.sin(k*Math.PI) : Math.pow(1-k, curve)); }
   const src = a.createBufferSource(); src.buffer = buf;
   const f = a.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
   const g = a.createGain(); g.gain.value = vol;
@@ -157,427 +175,592 @@ function tone(f1, f2, dur, vol=.3, type='sine'){
   o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime+dur);
 }
 const sfx = {
-  slap(){ noise(.12,{freq:1800,q:.7,vol:.9}); tone(180,60,.1,.4); },
-  saw(){ noise(.09,{freq:2600+Math.random()*800,q:3,vol:.35}); },
-  crack(){ noise(.35,{freq:4000,q:.5,vol:.7,type:'highpass'}); tone(900,200,.15,.15,'triangle'); },
-  pop(){ tone(700+Math.random()*300, 120, .07, .45, 'square'); noise(.04,{freq:3000,vol:.4}); },
-  punch(){ tone(120,40,.18,.8); noise(.08,{freq:600,vol:.6}); },
-  thud(){ tone(90,30,.3,.8); },
-  fire(){ noise(1.2,{freq:500,q:.4,vol:.3}); },
+  slap(){ noise(.13,{freq:1600,q:.6,vol:1}); tone(160,50,.12,.5); },
+  crackle(){ noise(.025,{freq:4500+Math.random()*2500,q:3,vol:.22}); },
+  exhale(d){ noise(d,{freq:900,q:.4,vol:.4,type:'lowpass',curve:-1}); },
+  cough(){ noise(.18,{freq:500,q:.8,vol:.9}); setTimeout(()=>noise(.16,{freq:450,q:.8,vol:.8}),220); setTimeout(()=>noise(.2,{freq:420,q:.8,vol:.7}),430); },
+  lighter(){ noise(.05,{freq:6000,q:2,vol:.5}); setTimeout(()=>noise(.6,{freq:800,q:.5,vol:.25,curve:-1}),80); },
+  fire(){ noise(2.2,{freq:500,q:.4,vol:.35,curve:-1}); },
+  no(){ tone(300,180,.25,.2,'square'); },
   coin(){ tone(988,988,.08,.2,'square'); setTimeout(()=>tone(1319,1319,.25,.2,'square'),80); },
 };
 const buzz = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+function say(text){ // 有粤语语音就用粤语读出来
+  try{
+    if(!window.speechSynthesis) return;
+    const u = new SpeechSynthesisUtterance(text.replace(/[～~！!？?，,。]/g,' '));
+    const v = speechSynthesis.getVoices().find(v => /zh[-_]HK|yue/i.test(v.lang));
+    if(v) u.voice = v; u.lang = 'zh-HK'; u.rate = 1.1; u.pitch = 1.25;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }catch(e){}
+}
 
-/* ---------------- 画布 & 公共工具 ---------------- */
-const cv = $('#cv'), ctx = cv.getContext('2d');
-let W=0, H=0, DPR=1, mode=null, raf=0, score=0, particles=[], shake=0, last=0;
+/* =========================================================
+   3D 引擎公共部分
+   ========================================================= */
+const T = THREE;
+const rand = (a,b) => a + Math.random()*(b-a);
+const stage = $('#stage');
+let renderer, scene, camera, game = null, raf = 0, shakeAmt = 0;
+const clock = new T.Clock();
+
+function makeTex(draw, w=128, h=w){ const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const tx = new T.CanvasTexture(c); tx.anisotropy = 4; return tx; }
+const smokeTex = makeTex((g,s) => {
+  for(let i=0;i<16;i++){
+    const x = s/2+rand(-s*.17,s*.17), y = s/2+rand(-s*.17,s*.17), r = rand(s*.14,s*.3);
+    const gr = g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,'rgba(255,255,255,.32)'); gr.addColorStop(1,'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.fillRect(0,0,s,s);
+  }
+});
+const glowTex = makeTex((g,s) => { const gr = g.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2); gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(.25,'rgba(255,200,120,.8)'); gr.addColorStop(1,'rgba(255,80,0,0)'); g.fillStyle = gr; g.fillRect(0,0,s,s); });
+
+// 粒子（烟、火、灰尘）
+function Puffs(tex, blending = T.NormalBlending){
+  const list = [], pool = [];
+  return {
+    spawn(o){
+      let s = pool.pop();
+      if(!s) s = new T.Sprite(new T.SpriteMaterial({map:tex, transparent:true, depthWrite:false, blending, fog:true}));
+      s.material.color.set(o.color ?? 0xffffff); s.material.rotation = Math.random()*6.28; s.material.opacity = 0;
+      s.position.copy(o.pos); s.scale.set(o.s0, o.s0, 1); scene.add(s);
+      list.push({s, v:o.vel.clone(), t:0, life:o.life, s0:o.s0, s1:o.s1, op:o.op, spin:o.spin ?? rand(-.6,.6), drag:o.drag ?? .98, up:o.up ?? 0, sway:o.sway ?? 0, ph:Math.random()*6});
+    },
+    update(dt){
+      for(let i=list.length-1;i>=0;i--){
+        const p = list[i]; p.t += dt; const k = p.t/p.life;
+        if(k >= 1){ scene.remove(p.s); pool.push(p.s); list.splice(i,1); continue; }
+        p.v.multiplyScalar(Math.pow(p.drag, dt*60)); p.v.y += p.up*dt;
+        p.s.position.addScaledVector(p.v, dt);
+        if(p.sway) p.s.position.x += Math.sin(p.t*2.2+p.ph)*p.sway*dt;
+        const sc = p.s0 + (p.s1-p.s0)*(1-Math.pow(1-k,2)); p.s.scale.set(sc,sc,1);
+        p.s.material.rotation += p.spin*dt;
+        p.s.material.opacity = p.op * (k < .12 ? k/.12 : 1-(k-.12)/.88);
+      }
+    },
+    clear(){ list.forEach(p => { scene.remove(p.s); pool.push(p.s); }); list.length = 0; },
+    get count(){ return list.length; }
+  };
+}
+
+function initRenderer(){
+  if(renderer) return;
+  renderer = new T.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
+  stage.prepend(renderer.domElement);
+  const el = renderer.domElement;
+  el.addEventListener('pointerdown', e => { ac(); el.setPointerCapture(e.pointerId); game && game.down && game.down(ndc(e), e); });
+  el.addEventListener('pointerup', () => game && game.up && game.up());
+  el.addEventListener('pointercancel', () => game && game.up && game.up());
+  window.addEventListener('resize', resize);
+}
+function ndc(e){ const r = renderer.domElement.getBoundingClientRect(); return new T.Vector2((e.clientX-r.left)/r.width*2-1, -(e.clientY-r.top)/r.height*2+1); }
 function resize(){
-  DPR = Math.min(window.devicePixelRatio||1, 2);
-  const r = cv.getBoundingClientRect(); W = r.width; H = r.height;
-  cv.width = W*DPR; cv.height = H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
-  mode && mode.resize && mode.resize();
+  if(!renderer || !game) return;
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix();
+  game.fit && game.fit(w/h);
 }
-window.addEventListener('resize', resize);
-function setScore(v, label){ score = v; $('#gScore').textContent = (label||'') + v; }
-function rand(a,b){ return a + Math.random()*(b-a); }
-function burst(x,y,n,opt={}){
-  for(let i=0;i<n;i++){
-    const ang = opt.ang!==undefined ? opt.ang + rand(-opt.spread||-1, opt.spread||1) : rand(0,Math.PI*2);
-    const sp = rand(opt.min||2, opt.max||8);
-    particles.push({x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp-(opt.up||0),life:1,decay:rand(.01,.03)*(opt.decayK||1),
-      size:rand(opt.smin||2,opt.smax||5),color:Array.isArray(opt.color)?opt.color[i%opt.color.length]:(opt.color||'#fff'),
-      g:opt.g===undefined?.3:opt.g,rot:rand(0,6),vr:rand(-.3,.3),shape:opt.shape||'dot',pts:opt.shape==='shard'?shardPts(opt.smax||20):null});
-  }
+function toScreen(v){ const p = v.clone().project(camera); return {x:(p.x+1)/2*stage.clientWidth, y:(1-p.y)/2*stage.clientHeight}; }
+function floatText(world, txt, color='#ffc94d', size=26){
+  const s = toScreen(world), d = document.createElement('div');
+  d.className = 'ft'; d.textContent = txt; d.style.cssText += `left:${s.x}px;top:${s.y}px;color:${color};font-size:${size}px`;
+  stage.appendChild(d); setTimeout(() => d.remove(), 1200);
 }
-function shardPts(s){ const n=3+(Math.random()*2|0), p=[]; for(let i=0;i<n;i++){const a=i/n*Math.PI*2+rand(-.4,.4), r=rand(s*.4,s); p.push([Math.cos(a)*r,Math.sin(a)*r]);} return p; }
-function drawParticles(){
-  for(const p of particles){
-    p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= p.decay;
-    ctx.save(); ctx.globalAlpha = Math.max(0,p.life); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle = p.color;
-    if(p.shape==='shard'){ ctx.beginPath(); p.pts.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])); ctx.closePath(); ctx.fill(); ctx.strokeStyle='#0002'; ctx.stroke(); }
-    else if(p.shape==='rect'){ ctx.fillRect(-p.size,-p.size/2,p.size*2,p.size); }
-    else if(p.shape==='text'){ ctx.font=`bold ${p.size}px sans-serif`; ctx.textAlign='center'; ctx.fillText(p.txt,0,0); }
-    else { ctx.beginPath(); ctx.arc(0,0,p.size,0,Math.PI*2); ctx.fill(); }
-    ctx.restore();
-  }
-  particles = particles.filter(p => p.life>0 && p.y < H+100);
-}
-function floatText(x,y,txt,color='#ffc94d',size=22){
-  particles.push({x,y,vx:rand(-.5,.5),vy:-2.2,g:.02,life:1,decay:.012,size,color,rot:0,vr:0,shape:'text',txt});
-}
-function loop(t){
-  const dt = Math.min(50, t-(last||t)); last = t;
-  ctx.save();
-  if(shake>0){ ctx.translate(rand(-shake,shake), rand(-shake,shake)); shake *= .85; if(shake<.3) shake=0; }
-  ctx.clearRect(-50,-50,W+100,H+100);
-  mode.draw(dt);
-  drawParticles();
-  ctx.restore();
+function loop(){
   raf = requestAnimationFrame(loop);
+  const dt = Math.min(.05, clock.getDelta());
+  game.update(dt);
+  camera.position.copy(game.camPos);
+  if(shakeAmt > 0){ camera.position.x += rand(-1,1)*shakeAmt; camera.position.y += rand(-1,1)*shakeAmt; shakeAmt *= .85; if(shakeAmt < .002) shakeAmt = 0; }
+  camera.lookAt(game.camLook);
+  renderer.render(scene, camera);
 }
-let ptr = {down:false,x:0,y:0,px:0,py:0};
-function pos(e){ const r = cv.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
-cv.addEventListener('pointerdown', e => { ac(); cv.setPointerCapture(e.pointerId); const p=pos(e); ptr={down:true,x:p.x,y:p.y,px:p.x,py:p.y}; mode&&mode.down&&mode.down(p.x,p.y); });
-cv.addEventListener('pointermove', e => { const p=pos(e); ptr.px=ptr.x; ptr.py=ptr.y; ptr.x=p.x; ptr.y=p.y; mode&&mode.move&&mode.move(p.x,p.y,ptr.down); });
-const up = () => { ptr.down=false; mode&&mode.up&&mode.up(); };
-cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+function setScore(html){ $('#gScore').innerHTML = html; }
+function hint(txt){ $('#hint').textContent = txt || ''; }
+function center(html){ const c = $('#center'); c.innerHTML = html || ''; c.classList.toggle('on', !!html); }
+function tools(html){ $('#tools').innerHTML = html || ''; }
 
-function startMode(id){
-  const m = MODES.find(x=>x.id===id);
+function startGame(id){
+  initRenderer();
   $('#home').classList.remove('on'); $('#game').classList.add('on');
-  $('#gTitle').textContent = m.ico + ' ' + m.name; $('#tools').innerHTML = '';
-  particles = []; shake = 0; last = 0;
-  mode = GAMES[id](); resize(); mode.init && mode.init();
-  cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
+  $('#gTitle').textContent = id === 'smoke' ? '🚬 ' + t('sName') : '🩴 ' + t('vName');
+  setScore(''); hint(''); center(''); tools(''); $('#bubble').style.display = 'none'; $('#lung').style.display = 'none';
+  game = id === 'smoke' ? SmokeGame() : VillainGame();
+  resize(); clock.getDelta();
+  cancelAnimationFrame(raf); loop();
 }
-function stopMode(){ cancelAnimationFrame(raf); mode && mode.stop && mode.stop(); mode = null; }
-function rr(x,y,w,h,r){ ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,r) : ctx.rect(x,y,w,h); }
+function stopGame(){
+  cancelAnimationFrame(raf); game && game.stop && game.stop(); game = null;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  $('#game').classList.remove('on'); $('#home').classList.add('on');
+}
+$('#backBtn').onclick = stopGame;
+document.querySelector('.cards').onclick = e => { const c = e.target.closest('.card'); if(c) startGame(c.dataset.g); };
 
-/* ---------------- 玩法 ---------------- */
-const GAMES = {};
+const std = (color, o={}) => new T.MeshStandardMaterial(Object.assign({color, roughness:.8}, o));
+function cyl(rt, rb, h, mat, seg=24){ const m = new T.Mesh(new T.CylinderGeometry(rt, rb, h, seg), mat); m.castShadow = true; m.receiveShadow = true; return m; }
+function box(w, h, d, mat){ const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.castShadow = true; m.receiveShadow = true; return m; }
+function sph(r, mat, ...a){ const m = new T.Mesh(new T.SphereGeometry(r, 24, 16, ...a), mat); m.castShadow = true; return m; }
+const UP = new T.Vector3(0,1,0);
+function stretch(mesh, a, b){ // 让一根单位长度圆柱连接 a → b
+  const d = b.clone().sub(a), len = d.length();
+  mesh.position.copy(a).addScaledVector(d, .5);
+  mesh.quaternion.setFromUnitVectors(UP, d.normalize());
+  mesh.scale.set(1, len, 1);
+}
 
-/* 1. 打小人 */
-GAMES.villain = () => {
-  const CHANTS = ['打你个小人头，打到你有气冇定抖！','打你个小人手，打到你有手唔识郁！','打你个小人脚，打到你有鞋唔识着！','打你个小人肚，打到你成日食错药！','打走小人，好运自然来！'];
-  let name = '小人', hits = 0, dents = [], slipper = null, burning = 0, paperAlpha = 1, wob = 0;
-  const GOAL = 60;
-  const box = () => { const w = Math.min(W*.7, 300), h = Math.min(H*.8, w*1.55); return {x:(W-w)/2, y:(H-h)/2, w, h}; };
-  function ui(){
-    $('#tools').innerHTML = `<input id="vname" maxlength="8" placeholder="写上小人的名字/外号（例：坏运气、小人）"><button class="btn" id="vset" style="padding:9px 14px">写上</button>`;
-    $('#vset').onclick = () => { name = ($('#vname').value.trim() || '小人').slice(0,8); $('#vname').blur(); };
+/* =========================================================
+   游戏一：抽根烟
+   ========================================================= */
+function SmokeGame(){
+  scene = new T.Scene();
+  scene.background = new T.Color(0x0d0b11); scene.fog = new T.Fog(0x0d0b11, 6, 16);
+  camera = new T.PerspectiveCamera(42, 1, .05, 40);
+  const G = { camPos:new T.Vector3(.3,.7,5), camLook:new T.Vector3(.35,-.15,0) };
+  const baseCam = G.camPos.clone();
+
+  scene.add(new T.AmbientLight(0x5c5270, .75));
+  const key = new T.DirectionalLight(0xffe2c4, .9); key.position.set(-3,5,3); key.castShadow = true; key.shadow.mapSize.set(1024,1024); scene.add(key);
+  const rim = new T.DirectionalLight(0x5f7dff, .55); rim.position.set(3,1.5,-4); scene.add(rim);
+
+  // 桌子（木纹）
+  const wood = makeTex((g,w,h) => { g.fillStyle='#3a2516'; g.fillRect(0,0,w,h); for(let i=0;i<70;i++){ g.strokeStyle=`rgba(${rand(10,40)},${rand(5,20)},0,${rand(.15,.4)})`; g.lineWidth=rand(1,4); g.beginPath(); const y=rand(0,h); g.moveTo(0,y); g.bezierCurveTo(w*.3,y+rand(-12,12),w*.6,y+rand(-12,12),w,y+rand(-6,6)); g.stroke(); } }, 512);
+  wood.wrapS = wood.wrapT = T.RepeatWrapping; wood.repeat.set(3,3);
+  const table = new T.Mesh(new T.PlaneGeometry(30,30), std(0xffffff,{map:wood, roughness:.7})); table.rotation.x = -Math.PI/2; table.position.y = -1; table.receiveShadow = true; scene.add(table);
+
+  // 烟灰缸
+  const pts = [[0,0],[.72,0],[.82,.22],[.76,.24],[.64,.07],[0,.07]].map(p => new T.Vector2(p[0],p[1]));
+  const tray = new T.Mesh(new T.LatheGeometry(pts, 48), std(0x38505e,{roughness:.15, metalness:.3, transparent:true, opacity:.92}));
+  tray.position.set(1.15,-1,.1); tray.castShadow = true; tray.receiveShadow = true; scene.add(tray);
+
+  // 香烟
+  const cig = new T.Group(); cig.position.set(-1.75,.05,.95); cig.rotation.set(0,.27,.05); scene.add(cig);
+  const stick = new T.Group(); stick.rotation.z = -Math.PI/2; cig.add(stick);
+  const filterTex = makeTex((g,w,h) => { g.fillStyle='#d7893c'; g.fillRect(0,0,w,h); for(let i=0;i<500;i++){ g.fillStyle=`rgba(${rand(120,200)},${rand(60,100)},20,.7)`; g.fillRect(rand(0,w),rand(0,h),2,2); } }, 128);
+  const R = .11, FL = .8, L0 = 2.4;
+  const filter = cyl(R, R, 1, std(0xffffff,{map:filterTex})); filter.scale.y = FL; filter.position.y = FL/2; stick.add(filter);
+  const band = cyl(R*1.005, R*1.005, .035, std(0xd4af37,{metalness:.7, roughness:.3})); band.position.y = FL+.03; stick.add(band);
+  const paper = cyl(R, R, 1, std(0xf3f0e8,{roughness:.9})); stick.add(paper);
+  const char = cyl(R*1.01, R*1.01, .03, std(0x2b1d15)); stick.add(char);
+  const emberMat = std(0x200800,{emissive:0xff3300, emissiveIntensity:1});
+  const ember = cyl(R*.98, R*.98, .07, emberMat); stick.add(ember);
+  const ash = cyl(R*.96, R*.9, 1, std(0x8d8984,{roughness:1})); stick.add(ash);
+  const tipLight = new T.PointLight(0xff5a1a, 1, 3.2); scene.add(tipLight);
+  const glow = new T.Sprite(new T.SpriteMaterial({map:glowTex, color:0xff6a2a, transparent:true, depthWrite:false, blending:T.AdditiveBlending}));
+  scene.add(glow);
+
+  const smoke = Puffs(smokeTex), flame = Puffs(glowTex, T.AdditiveBlending);
+  let L = L0, ashLen = 0, lit = false, holding = false, inhale = 0, puffs = 0, cigs = 0, exhaleLeft = 0, exhaleRate = 0, exhaleK = 1;
+  let crackT = 0, idleT = 0, emberI = 0, lightAnim = 0, done = false;
+  const fallen = [];
+  const tipW = new T.Vector3(), ashW = new T.Vector3(), tmp = new T.Vector3();
+
+  function layout(){
+    paper.scale.y = Math.max(.001, L); paper.position.y = FL + L/2;
+    char.position.y = FL + L - .005;
+    ember.position.y = FL + L + .03;
+    ash.visible = ashLen > .01; ash.scale.y = Math.max(.001, ashLen); ash.position.y = FL + L + .065 + ashLen/2;
+    paper.visible = char.visible = L > .005;
   }
-  return {
-    init(){ ui(); setScore(0,'拍了 '); },
-    down(x,y){
-      if(burning) return;
-      const b = box();
-      slipper = {x,y,t:1};
-      if(x>b.x && x<b.x+b.w && y>b.y && y<b.y+b.h){
-        hits++; setScore(hits,'拍了 '); sfx.slap(); buzz(25); shake = 9; wob = 1;
-        dents.push({x:(x-b.x)/b.w, y:(y-b.y)/b.h, r:rand(10,22), a:rand(0,6)});
-        burst(x,y,8,{color:['#e8d9a8','#c9b47a','#fff'],smin:2,smax:4});
-        if(hits % 6 === 0) floatText(W/2, b.y+30, CHANTS[(hits/6-1)%CHANTS.length], '#ffc94d', 16);
-        if(hits >= GOAL){ burning = 1; sfx.fire(); floatText(W/2,H/2,'🔥 烧走小人！🔥','#ff7a3d',28); }
-      } else { noise(.06,{freq:800,vol:.3}); }
-    },
-    draw(){
-      const b = box();
-      ctx.fillStyle = '#3b1f1f'; ctx.fillRect(0,0,W,H);
-      // 砖墙背景
-      ctx.strokeStyle = '#ffffff10';
-      for(let y=0;y<H;y+=30){ for(let x=((y/30)%2)*30; x<W; x+=60){ ctx.strokeRect(x,y,60,30); } }
-      // 进度条
-      ctx.fillStyle='#0005'; rr(16,12,W-32,10,5); ctx.fill();
-      ctx.fillStyle='#ff5d5d'; rr(16,12,(W-32)*Math.min(1,hits/GOAL),10,5); ctx.fill();
-      if(burning){
-        burning += 1; paperAlpha = Math.max(0, 1 - burning/120);
-        for(let i=0;i<4;i++) burst(rand(b.x,b.x+b.w), b.y+b.h*(1-burning/120), 1,{color:['#ff7a3d','#ffc94d','#ff3d3d'],g:-.15,min:.5,max:2,smin:4,smax:9});
-        if(burning > 150){ burning = 0; hits = 0; dents = []; paperAlpha = 1; setScore(0,'拍了 '); floatText(W/2,H/2,'✨ 好运来 ✨','#ffe08a',30); sfx.coin(); }
-      }
-      wob *= .85;
-      ctx.save(); ctx.globalAlpha = paperAlpha;
-      ctx.translate(b.x+b.w/2, b.y+b.h/2); ctx.rotate(Math.sin(performance.now()/40)*wob*.05); ctx.translate(-b.w/2,-b.h/2);
-      // 纸
-      ctx.fillStyle = '#f3e3b0'; ctx.fillRect(0,0,b.w,b.h);
-      ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 4; ctx.strokeRect(8,8,b.w-16,b.h-16);
-      // 小人（纸公仔）
-      ctx.strokeStyle = '#222'; ctx.lineWidth = 3; ctx.fillStyle = '#f7d9b5';
-      const cx = b.w/2, hy = b.h*.22, hr = b.w*.15;
-      ctx.beginPath(); ctx.arc(cx,hy,hr,0,Math.PI*2); ctx.fill(); ctx.stroke();
-      const dizzy = hits>15;
-      ctx.font = `bold ${hr*.5}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#222';
-      ctx.fillText(dizzy?'✖':'•', cx-hr*.4, hy-hr*.1); ctx.fillText(dizzy?'✖':'•', cx+hr*.4, hy-hr*.1);
-      ctx.beginPath(); dizzy ? ctx.arc(cx,hy+hr*.55,hr*.25,Math.PI,0) : ctx.arc(cx,hy+hr*.25,hr*.25,0,Math.PI); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(cx,hy+hr); ctx.lineTo(cx,b.h*.62);
-      ctx.moveTo(cx-b.w*.28,b.h*.4); ctx.lineTo(cx+b.w*.28,b.h*.4);
-      ctx.moveTo(cx,b.h*.62); ctx.lineTo(cx-b.w*.2,b.h*.85); ctx.moveTo(cx,b.h*.62); ctx.lineTo(cx+b.w*.2,b.h*.85); ctx.stroke();
-      // 名字
-      ctx.fillStyle = '#c0392b'; ctx.font = `bold ${Math.min(34, b.w*.85/Math.max(2,name.length))}px sans-serif`;
-      ctx.fillText(name, cx, b.h*.52);
-      // 拍痕
-      for(const d of dents){
-        ctx.save(); ctx.translate(d.x*b.w, d.y*b.h); ctx.rotate(d.a);
-        ctx.fillStyle='#0000002a'; ctx.beginPath(); ctx.ellipse(0,0,d.r*1.4,d.r*.7,0,0,Math.PI*2); ctx.fill();
-        ctx.strokeStyle='#0000004a'; ctx.lineWidth=1.5; ctx.beginPath();
-        for(let i=0;i<5;i++){ const a=i*1.3; ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*d.r*1.6, Math.sin(a)*d.r); } ctx.stroke();
-        ctx.restore();
-      }
-      ctx.restore();
-      // 拖鞋
-      if(slipper){
-        slipper.t -= .08;
-        if(slipper.t <= 0) slipper = null;
-        else {
-          ctx.save(); ctx.translate(slipper.x+20, slipper.y-10); ctx.rotate(-.6 + (1-slipper.t)*.3);
-          ctx.globalAlpha = Math.min(1, slipper.t*2);
-          ctx.fillStyle='#2e86de'; rr(-22,-55,44,95,22); ctx.fill();
-          ctx.strokeStyle='#fff'; ctx.lineWidth=6; ctx.beginPath(); ctx.arc(0,-15,18,Math.PI*1.1,Math.PI*1.9); ctx.stroke();
-          ctx.restore();
-        }
-      }
-      if(hits===0 && !burning){ ctx.fillStyle='#fff9'; ctx.font='15px sans-serif'; ctx.textAlign='center'; ctx.fillText('👆 点纸公仔用拖鞋打！', W/2, H-20); }
+  function score(){ setScore(`${puffs}${t('puffs')} · ${cigs}${t('cigs')}`); }
+  function offer(first){
+    lit = false; done = true;
+    center(`<h2>${first ? t('sLight') : t('sDone')}</h2><div class="lbl">${PRICES[currency]} ${t('sUnit')}</div><button class="btn gold" id="buyCig">${first ? t('sLightBtn') : t('sAgain')}</button>`);
+    $('#buyCig').onclick = () => pay(t('payS'), ok => { if(!ok) return; center(''); newCig(); });
+  }
+  function newCig(){
+    fallen.forEach(f => scene.remove(f.m)); fallen.length = 0;
+    L = L0; ashLen = 0; inhale = 0; done = false; lightAnim = 1.2; sfx.lighter(); layout();
+    hint(t('sHint'));
+  }
+  function dropAsh(){
+    if(ashLen < .06) return;
+    const m = ash.clone(); m.material = ash.material;
+    ash.getWorldPosition(ashW); ash.getWorldQuaternion(m.quaternion);
+    m.position.copy(ashW); m.scale.set(1, ashLen, 1); scene.add(m);
+    fallen.push({m, vy:0, rest:false, vr:rand(-3,3)}); ashLen = 0; layout();
+    if(fallen.length > 14) scene.remove(fallen.shift().m);
+  }
+  function startExhale(k){
+    const n = Math.round(12 + k*40);
+    exhaleLeft = n; exhaleRate = n / (0.6 + k*.9); exhaleK = k;
+    sfx.exhale(.7 + k*1.2);
+  }
+  function emitExhale(){
+    const dir = G.camLook.clone().sub(camera.position).normalize();
+    const mouth = camera.position.clone().addScaledVector(dir, 1.7); mouth.y -= .6;
+    const v = dir.clone().multiplyScalar(rand(1.4, 2.6) + exhaleK).add(new T.Vector3(rand(-.45,.45), rand(.05,.45), rand(-.2,.2)));
+    smoke.spawn({pos:mouth, vel:v, life:rand(2.6,4.2), s0:rand(.1,.25), s1:rand(1.4,2.6)*(.7+exhaleK*.5), op:rand(.12,.22), color:0xdcdce6, drag:.965, up:.12, sway:.25});
+  }
+  layout(); score();
+  offer(true);
+
+  G.fit = a => {
+    if(a < 1){ // 竖屏：香烟斜着指向远处，整根都看得到
+      cig.position.set(-1.05,.1,2.0); cig.rotation.set(0,.95,.06);
+      tray.position.set(.75,-1,-.55); baseCam.set(.15,1.0,5.6); G.camLook.set(.05,-.2,.3);
+    } else {
+      cig.position.set(-1.75,.05,.95); cig.rotation.set(0,.27,.05);
+      tray.position.set(1.15,-1,.1); baseCam.set(.3,.7,5); G.camLook.set(.35,-.15,0);
     }
+    G.camPos.copy(baseCam);
   };
-};
-
-/* 2. 锯木头人 */
-GAMES.saw = () => {
-  let dummy, cuts = 0, cutY = null, progress = 0, lastDir = 0, sawSoundT = 0, falling = null, respawn = 0;
-  const dims = () => { const h = Math.min(H*.75, 460), w = h*.42; return {x:(W-w)/2, y:H-h-20, w, h}; };
-  function drawDummy(d){
-    const {x,y,w,h} = d;
-    // 木头身体
-    ctx.fillStyle='#c98b4b'; ctx.strokeStyle='#7a4a1f'; ctx.lineWidth=3;
-    rr(x+w*.15, y+h*.28, w*.7, h*.5, 18); ctx.fill(); ctx.stroke();
-    // 头
-    ctx.beginPath(); ctx.ellipse(x+w/2, y+h*.15, w*.32, h*.13, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-    // 年轮纹
-    ctx.strokeStyle='#a8692f'; ctx.lineWidth=2;
-    for(let i=0;i<5;i++){ ctx.beginPath(); ctx.moveTo(x+w*.25, y+h*(.34+i*.09)); ctx.bezierCurveTo(x+w*.4,y+h*(.32+i*.09),x+w*.6,y+h*(.37+i*.09),x+w*.75,y+h*(.34+i*.09)); ctx.stroke(); }
-    // 手
-    ctx.strokeStyle='#7a4a1f'; ctx.lineWidth=12; ctx.lineCap='round';
-    ctx.beginPath(); ctx.moveTo(x+w*.16,y+h*.34); ctx.lineTo(x-w*.12,y+h*.5); ctx.moveTo(x+w*.84,y+h*.34); ctx.lineTo(x+w*1.12,y+h*.5); ctx.stroke();
-    // 腿
-    ctx.beginPath(); ctx.moveTo(x+w*.35,y+h*.78); ctx.lineTo(x+w*.3,y+h); ctx.moveTo(x+w*.65,y+h*.78); ctx.lineTo(x+w*.7,y+h); ctx.stroke();
-    ctx.lineCap='butt';
-    // 脸
-    ctx.fillStyle='#3b2412'; const fy = y+h*.14;
-    const scared = progress > .3;
-    ctx.beginPath(); ctx.arc(x+w*.38, fy, scared?6:4, 0, Math.PI*2); ctx.arc(x+w*.62, fy, scared?6:4, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); scared ? ctx.ellipse(x+w/2, fy+h*.05, 8, 10, 0, 0, Math.PI*2) : ctx.arc(x+w/2, fy+h*.03, 10, 0, Math.PI);
-    scared ? ctx.fill() : (ctx.strokeStyle='#3b2412', ctx.lineWidth=3, ctx.stroke());
-  }
-  function drawSaw(x,y){
-    ctx.save(); ctx.translate(x,y);
-    ctx.fillStyle='#c8d0d8'; ctx.strokeStyle='#6b7680'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(-90,-14); ctx.lineTo(60,-14); ctx.lineTo(60,10);
-    for(let i=60;i>-90;i-=10){ ctx.lineTo(i-5,16); ctx.lineTo(i-10,10); }
-    ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle='#b5442c'; rr(58,-22,46,36,10); ctx.fill();
-    ctx.fillStyle='#3a1a12'; rr(70,-12,22,16,6); ctx.fill();
-    ctx.restore();
-  }
-  return {
-    init(){ dummy = dims(); setScore(0,'锯开 '); },
-    resize(){ dummy = dims(); },
-    down(x,y){
-      if(falling) return;
-      const d = dummy;
-      if(cutY===null && y>d.y+d.h*.05 && y<d.y+d.h*.9) cutY = y;
-    },
-    move(x,y,isDown){
-      if(!isDown || falling || cutY===null) return;
-      const dx = x - ptr.px, d = dummy;
-      if(Math.abs(dx) < 1) return;
-      const dir = Math.sign(dx);
-      if(x > d.x-150 && x < d.x+d.w+150){
-        progress += Math.abs(dx)/ (d.w*9) * (dir!==lastDir ? 1.6 : 1);
-        lastDir = dir;
-        const now = performance.now();
-        if(now - sawSoundT > 70){ sfx.saw(); sawSoundT = now; buzz(8); }
-        const edge = d.x + d.w*.15 + d.w*.7*Math.min(1,progress);
-        burst(edge, cutY+4, 2, {color:['#e3b77a','#c98b4b','#f2d3a1'],min:1,max:4,smin:1.5,smax:3,shape:'rect'});
-        shake = Math.max(shake, 1.5);
-        if(progress >= 1){
-          cuts++; setScore(cuts,'锯开 '); sfx.crack(); sfx.thud(); buzz(80); shake = 14;
-          falling = {cutY, vx: rand(-4,4), vy: -6, rot:0, vr: rand(-.08,.08), ox:0, oy:0, t:0};
-          burst(W/2, cutY, 50, {color:['#e3b77a','#c98b4b','#f2d3a1'],min:3,max:12,shape:'rect',smin:2,smax:5});
-          floatText(W/2, cutY-40, ['咔嚓！','一刀两断！','爽！','木屑横飞！'][cuts%4], '#ffc94d', 30);
-        }
+  G.down = () => {
+    if(!lit) return;
+    holding = true; inhale = 0; dropAsh();
+  };
+  G.up = () => {
+    if(!holding) return;
+    holding = false;
+    if(inhale > .12){ puffs++; score(); startExhale(Math.min(1, inhale/2.6)); }
+    inhale = 0;
+  };
+  G.update = dt => {
+    // 点火
+    if(lightAnim > 0){
+      lightAnim -= dt; ember.getWorldPosition(tipW);
+      if(Math.random() < .8) flame.spawn({pos:tipW.clone().add(new T.Vector3(.08,-.05,0)), vel:new T.Vector3(rand(-.05,.05),rand(.4,.8),0), life:rand(.2,.4), s0:.25, s1:.05, op:.9, color:0xffa040, drag:1});
+      emberI = Math.min(1.6, emberI + dt*2.5);
+      if(lightAnim <= 0){ lit = true; }
+    }
+    // 吸
+    let target = lit ? .9 + Math.sin(performance.now()/180)*.15 : (lightAnim>0 ? emberI : 0);
+    if(holding && lit){
+      inhale += dt; target = 4.2;
+      const burn = .2*dt; L -= burn; ashLen += burn*.9;
+      crackT -= dt; if(crackT <= 0){ sfx.crackle(); crackT = rand(.05,.14); }
+      $('#lung').style.display = 'block'; $('#lung i').style.width = Math.min(100, inhale/2.6*100) + '%';
+      G.camPos.lerp(tmp.copy(baseCam).multiplyScalar(.9), dt*2);
+      if(inhale > 3.2){ // 吸太久会咳
+        holding = false; puffs++; score(); startExhale(1.1); sfx.cough(); shakeAmt = .12; buzz([60,60,60]);
+        floatText(new T.Vector3(0,.8,1), t('cough'), '#fff', 28); inhale = 0;
       }
-    },
-    up(){},
-    draw(){
-      const d = dummy;
-      // 背景：木工房
-      const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#2b3a4a'); g.addColorStop(1,'#1a222c'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-      ctx.fillStyle='#5a3d22'; ctx.fillRect(0,H-22,W,22);
-      if(falling){
-        falling.t++;
-        falling.vy += .5; falling.ox += falling.vx; falling.oy += falling.vy; falling.rot += falling.vr;
-        if(falling.oy > H){ /* 已掉出画面 */ }
-        // 下半身
-        ctx.save(); ctx.beginPath(); ctx.rect(0,falling.cutY,W,H); ctx.clip(); drawDummy(d); ctx.restore();
-        // 上半身
-        ctx.save(); ctx.translate(W/2+falling.ox, falling.cutY+falling.oy); ctx.rotate(falling.rot); ctx.translate(-W/2,-falling.cutY);
-        ctx.beginPath(); ctx.rect(0,0,W,falling.cutY); ctx.clip(); drawDummy(d); ctx.restore();
-        if(falling.t > 90){ falling = null; cutY = null; progress = 0; }
+    } else {
+      if(lit){ L -= .006*dt; ashLen += .005*dt; }
+      $('#lung').style.display = 'none';
+      G.camPos.lerp(baseCam, dt*2);
+    }
+    emberI += (target - emberI) * Math.min(1, dt*6);
+    emberMat.emissiveIntensity = Math.max(.02, emberI);
+    emberMat.emissive.setHSL(.03 + emberI*.01, 1, .5);
+    if(ashLen > .45 && !holding) dropAsh();
+    if(lit && L <= 0){ L = 0; lit = false; holding = false; cigs++; score(); setTimeout(() => offer(false), 900); hint(''); }
+    layout();
+
+    ember.getWorldPosition(tipW);
+    tipLight.position.copy(tipW); tipLight.intensity = emberI*.9;
+    glow.position.copy(tipW); const gs = .25 + emberI*.12; glow.scale.set(gs,gs,1); glow.material.opacity = Math.min(1, emberI*.5);
+
+    // 烟头自己冒的细烟
+    idleT -= dt;
+    if((lit || emberI > .2) && idleT <= 0){
+      idleT = holding ? .12 : .06;
+      ash.getWorldPosition(ashW); const from = ashLen > .02 ? tmp.copy(ashW).lerp(tipW,.3) : tipW;
+      smoke.spawn({pos:from.clone(), vel:new T.Vector3(rand(-.03,.03), rand(.25,.4), rand(-.03,.03)), life:rand(3,4.5), s0:.06, s1:rand(.5,.9), op:.16, color:0xc8c8d2, drag:.995, up:.05, sway:.35});
+    }
+    // 呼出来的烟
+    if(exhaleLeft > 0){ let n = exhaleRate*dt; while(n > 0 && exhaleLeft > 0){ if(n >= 1 || Math.random() < n) { emitExhale(); exhaleLeft--; } n--; } }
+    // 掉下去的烟灰
+    for(const f of fallen){
+      if(f.rest) continue;
+      f.vy -= 9*dt; f.m.position.y += f.vy*dt; f.m.rotation.z += f.vr*dt;
+      const floor = Math.hypot(f.m.position.x-tray.position.x, f.m.position.z-tray.position.z) < .7 ? -.93 : -.97;
+      if(f.m.position.y < floor){ f.m.position.y = floor; f.rest = true; f.m.rotation.set(0, rand(0,3), Math.PI/2); f.m.scale.x = 1.3;
+        for(let i=0;i<4;i++) smoke.spawn({pos:f.m.position.clone(), vel:new T.Vector3(rand(-.3,.3),rand(.1,.3),rand(-.3,.3)), life:1, s0:.05, s1:.3, op:.25, color:0x999999}); }
+    }
+    smoke.update(dt); flame.update(dt);
+  };
+  G.stop = () => { smoke.clear(); flame.clear(); };
+  return G;
+}
+
+/* =========================================================
+   游戏二：打小人（鹅颈桥底）
+   ========================================================= */
+function VillainGame(){
+  scene = new T.Scene();
+  scene.background = new T.Color(0x0b090d); scene.fog = new T.Fog(0x0b090d, 7, 18);
+  camera = new T.PerspectiveCamera(45, 1, .05, 50);
+  const G = { camPos:new T.Vector3(0,2.3,3.5), camLook:new T.Vector3(0,-.25,-.55) };
+  const baseCam = G.camPos.clone();
+
+  scene.add(new T.AmbientLight(0x4a4258, .7));
+  const lamp = new T.SpotLight(0xd6e2ff, 1.1, 20, .6, .5); lamp.position.set(2.5,6,3); lamp.target.position.set(0,-1,-.3); lamp.castShadow = true; lamp.shadow.mapSize.set(1024,1024);
+  scene.add(lamp, lamp.target);
+  const candleLight = new T.PointLight(0xff8a3a, 1.6, 6); candleLight.position.set(-1.25,-.35,.25); scene.add(candleLight);
+
+  // 地面
+  const ground = makeTex((g,w,h) => { g.fillStyle='#46454b'; g.fillRect(0,0,w,h); for(let i=0;i<4000;i++){ const c=rand(40,90); g.fillStyle=`rgba(${c},${c},${c+4},.5)`; g.fillRect(rand(0,w),rand(0,h),rand(1,3),rand(1,3)); } g.strokeStyle='#2c2b30'; g.lineWidth=3; for(let i=0;i<=w;i+=128){ g.beginPath(); g.moveTo(i,0); g.lineTo(i,h); g.moveTo(0,i); g.lineTo(w,i); g.stroke(); } }, 512);
+  ground.wrapS = ground.wrapT = T.RepeatWrapping; ground.repeat.set(6,6);
+  const floor = new T.Mesh(new T.PlaneGeometry(30,30), std(0xffffff,{map:ground})); floor.rotation.x = -Math.PI/2; floor.position.y = -1; floor.receiveShadow = true; scene.add(floor);
+  // 桥底：后墙、桥面、柱
+  const concrete = std(0x3a3638,{roughness:1});
+  const wall = box(14,6,.3,concrete); wall.position.set(0,2,-3.4); scene.add(wall);
+  const deck = box(16,.8,7,std(0x242226)); deck.position.set(0,4.3,-1.5); scene.add(deck);
+  [-3.2,3.2].forEach(x => { const p = box(1,5.5,1,concrete); p.position.set(x,1.75,-2.6); scene.add(p); });
+  // 红色招牌
+  const signTex = makeTex((g,w,h) => {
+    g.fillStyle='#b3141b'; g.fillRect(0,0,w,h); g.strokeStyle='#f6c945'; g.lineWidth=12; g.strokeRect(14,14,w-28,h-28);
+    g.fillStyle='#f6c945'; g.textAlign='center'; g.textBaseline='middle';
+    g.font='bold 150px "PingFang HK","Microsoft JhengHei",serif'; g.fillText('打小人', w/2, h*.42);
+    g.font='bold 54px "PingFang HK","Microsoft JhengHei",serif'; g.fillText('驅邪 · 擋災 · 轉運', w/2, h*.78);
+  }, 512, 300);
+  const sign = new T.Mesh(new T.PlaneGeometry(2.2,1.29), new T.MeshStandardMaterial({map:signTex, emissive:0x400000, roughness:.9}));
+  sign.position.set(-.2,1.9,-3.24); scene.add(sign);
+
+  // 蜡烛 + 香
+  const flames = Puffs(glowTex, T.AdditiveBlending), dust = Puffs(smokeTex);
+  const candles = [];
+  [[-1.35,.1],[-1.1,.55],[1.25,.45]].forEach(([x,z],i) => {
+    const h = .35 + i*.08, c = cyl(.06,.06,h,std(0xc4161c,{emissive:0x220000})); c.position.set(x,-1+h/2,z); scene.add(c);
+    candles.push(new T.Vector3(x,-1+h+.07,z));
+  });
+  const pot = cyl(.16,.12,.22,std(0xa07a2c,{metalness:.5,roughness:.4})); pot.position.set(1.35,-.89,-.2); scene.add(pot);
+  const incense = [];
+  for(let i=0;i<3;i++){ const s = cyl(.008,.008,.6,std(0xb03a2e),6); s.position.set(1.35+(i-1)*.04,-.55,-.2); s.rotation.z = (i-1)*.12; scene.add(s); incense.push(new T.Vector3(1.35+(i-1)*.08,-.25,-.2)); }
+
+  // 砖头 + 纸公仔
+  const brick = box(1.35,.32,1.85,std(0x8a3a28)); brick.position.set(0,-.84,.15); scene.add(brick);
+  const PW = 1.0, PH = 1.5, paperY = -.665, paperZ = .15;
+  const pGeo = new T.PlaneGeometry(PW, PH, 30, 45);
+  const pCanvas = document.createElement('canvas'); pCanvas.width = 512; pCanvas.height = 768;
+  const pc = pCanvas.getContext('2d'), pTex = new T.CanvasTexture(pCanvas); pTex.anisotropy = 4;
+  const paperMat = new T.MeshStandardMaterial({map:pTex, side:T.DoubleSide, roughness:.95, alphaTest:.5, transparent:false});
+  const paper = new T.Mesh(pGeo, paperMat); paper.rotation.x = -Math.PI/2; paper.position.set(0,paperY,paperZ); paper.castShadow = true; paper.receiveShadow = true; scene.add(paper);
+  const flat = Float32Array.from(pGeo.attributes.position.array);
+
+  let name = '', hits = 0, state = 'talk', refusals = 0, burnT = 0;
+  const GOAL = 50;
+  function drawPaper(){
+    const w = 512, h = 768, g = pc;
+    g.globalCompositeOperation = 'source-over'; g.clearRect(0,0,w,h);
+    g.fillStyle = '#f1dd9c'; g.fillRect(0,0,w,h);
+    for(let i=0;i<900;i++){ g.fillStyle=`rgba(160,120,40,${rand(.03,.12)})`; g.fillRect(rand(0,w),rand(0,h),rand(1,4),rand(1,4)); }
+    g.strokeStyle = '#c0261f'; g.lineWidth = 8; g.strokeRect(22,22,w-44,h-44);
+    // 小人
+    const cx = w/2; g.strokeStyle = '#1c1c1c'; g.lineWidth = 7; g.lineCap = 'round'; g.fillStyle = '#f6d6ae';
+    g.beginPath(); g.arc(cx,165,72,0,7); g.fill(); g.stroke();
+    g.fillStyle = '#1c1c1c'; g.beginPath(); g.arc(cx-26,155,8,0,7); g.arc(cx+26,155,8,0,7); g.fill();
+    g.beginPath(); g.moveTo(cx-34,120); g.lineTo(cx-12,132); g.moveTo(cx+34,120); g.lineTo(cx+12,132); g.stroke();
+    g.beginPath(); g.arc(cx,205,22,Math.PI*1.15,Math.PI*1.85); g.stroke();
+    g.beginPath(); g.moveTo(cx,237); g.lineTo(cx,500); g.moveTo(cx-150,320); g.lineTo(cx+150,320);
+    g.moveTo(cx,500); g.lineTo(cx-110,690); g.moveTo(cx,500); g.lineTo(cx+110,690); g.stroke();
+    g.fillStyle = '#c0261f'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const n = name || '小人'; g.font = `bold ${Math.min(110, 420/Math.max(1.6, [...n].length))}px "PingFang HK","Microsoft JhengHei",sans-serif`;
+    g.save(); g.shadowColor = '#f1dd9c'; g.shadowBlur = 10; g.fillText(n, cx, 420); g.restore();
+    pTex.needsUpdate = true;
+  }
+  function resetPaper(){ pGeo.attributes.position.array.set(flat); pGeo.attributes.position.needsUpdate = true; pGeo.computeVertexNormals(); hits = 0; burnT = 0; drawPaper(); }
+  drawPaper();
+
+  // ---------- 师傅（婆婆） ----------
+  const M = new T.Group(); M.position.set(0,-1,-1.5); scene.add(M);
+  const shirtTex = makeTex((g,w,h) => { g.fillStyle='#24346b'; g.fillRect(0,0,w,h); for(let i=0;i<60;i++){ const x=rand(0,w),y=rand(0,h); g.fillStyle=['#e8577a','#f2c14e','#ffffff'][i%3]; for(let k=0;k<5;k++){ const a=k/5*6.28; g.beginPath(); g.arc(x+Math.cos(a)*6,y+Math.sin(a)*6,4.5,0,7); g.fill(); } g.fillStyle='#ffe28a'; g.beginPath(); g.arc(x,y,3,0,7); g.fill(); } }, 256);
+  shirtTex.wrapS = shirtTex.wrapT = T.RepeatWrapping; shirtTex.repeat.set(2,1);
+  const skin = std(0xeec29a), pants = std(0x1d1d22), gray = std(0xb9b7b4,{roughness:1}), dark = std(0x111111);
+  const stool = cyl(.34,.3,.42,std(0xd12f2f,{roughness:.5})); stool.position.y = .21; M.add(stool);
+  const body = cyl(.3,.48,.95,std(0xffffff,{map:shirtTex})); body.position.y = .9; M.add(body);
+  [-.15,.15].forEach(x => { const th = box(.2,.18,.62,pants); th.position.set(x,.5,.28); M.add(th); const sh = box(.17,.46,.17,pants); sh.position.set(x,.23,.55); M.add(sh); const ft = box(.18,.07,.28,dark); ft.position.set(x,.035,.62); M.add(ft); });
+  const headG = new T.Group(); headG.position.y = 1.62; M.add(headG);
+  headG.add(sph(.27, skin));
+  const hair = sph(.288, gray, 0, Math.PI*2, 0, Math.PI*.5); hair.position.set(0,.02,-.02); hair.rotation.x = -.35; headG.add(hair);
+  const bun = sph(.12, gray); bun.position.set(0,.2,-.2); headG.add(bun);
+  [-.09,.09].forEach(x => { const e = sph(.028, dark); e.position.set(x,.03,.245); headG.add(e);
+    const gl = new T.Mesh(new T.TorusGeometry(.065,.011,8,24), std(0x6a4b2a,{metalness:.4})); gl.position.set(x,.03,.255); headG.add(gl); });
+  const mouth = box(.11,.025,.02,std(0x8a2030)); mouth.position.set(0,-.12,.25); headG.add(mouth);
+  [-.15,.15].forEach(x => { const b = sph(.04, std(0xf08a8a,{transparent:true,opacity:.6})); b.position.set(x,-.05,.21); b.scale.z=.3; headG.add(b); });
+  const armMat = std(0xffffff,{map:shirtTex});
+  const armL = cyl(.075,.075,1,armMat,12); M.add(armL); stretch(armL, new T.Vector3(-.36,1.2,0), new T.Vector3(-.32,.75,.32));
+  const handL = sph(.08, skin); handL.position.set(-.32,.72,.34); M.add(handL);
+  const armR = cyl(.075,.075,1,armMat,12); scene.add(armR);
+  const handR = sph(.08, skin); scene.add(handR);
+  const shoulderR = new T.Vector3(.36,.2,-1.5);
+
+  // 拖鞋
+  const slipper = new T.Group(); scene.add(slipper);
+  const sole = new T.Shape(); sole.absellipse(0,0,.13,.3,0,Math.PI*2,false,0);
+  const soleGeo = new T.ExtrudeGeometry(sole,{depth:.045, bevelEnabled:true, bevelSize:.01, bevelThickness:.01, bevelSegments:2}); soleGeo.rotateX(-Math.PI/2);
+  const soleM = new T.Mesh(soleGeo, std(0xd63031,{roughness:.6})); soleM.castShadow = true; slipper.add(soleM);
+  const strap = new T.Mesh(new T.TorusGeometry(.12,.03,8,20,Math.PI), std(0xf5f5f5)); strap.position.set(0,.05,-.08); slipper.add(strap);
+
+  const rest = {p:new T.Vector3(.58,-.25,-1.05), r:new T.Euler(-1.15,0,.35)};
+  let anim = null;
+  const cur = () => ({p:slipper.position.clone(), r:slipper.rotation.clone()});
+  function pose(a, b, k){
+    slipper.position.lerpVectors(a.p, b.p, k);
+    slipper.rotation.set(a.r.x+(b.r.x-a.r.x)*k, a.r.y+(b.r.y-a.r.y)*k, a.r.z+(b.r.z-a.r.z)*k);
+  }
+  pose(rest, rest, 1);
+  const easeOut = k => 1-(1-k)*(1-k), easeIn = k => k*k*k;
+
+  // ---------- 对话 ----------
+  let talkUntil = 0, shakeHead = 0, bubbleOn = false;
+  const headW = new T.Vector3();
+  function speak(yue, en, ms){
+    const b = $('#bubble'); b.innerHTML = yue + (lang === 'en' && en ? `<small>${en}</small>` : '');
+    b.style.display = 'block'; bubbleOn = true;
+    talkUntil = performance.now() + (ms || 900 + yue.length*110); say(yue);
+  }
+  const REFUSE = [
+    ['吓？你讲咩呀？我听唔明呀！', 'Huh? What are you saying? I don\'t understand!'],
+    ['唔好同我讲英文啦，我唔识㗎！唔做！', 'Don\'t talk English to me, I don\'t know it! Not doing it!'],
+    ['听唔明！听唔明！下一位！', 'Don\'t understand! Don\'t understand! NEXT!'],
+    ['你讲大声都冇用㗎，我都系听唔明！', 'Speaking louder won\'t help, I still don\'t get it!'],
+  ];
+  const CHANTS = [
+    ['打你个小人头，打到你有气冇定抖！', 'Beat your villain head, till you\'re left gasping!'],
+    ['打你个小人手，打到你有手唔识郁！', 'Beat your villain hands, till they can\'t move!'],
+    ['打你个小人脚，打到你有鞋唔识着！', 'Beat your villain feet, till you can\'t wear shoes!'],
+    ['打你个小人眼，打到你有眼唔识睇！', 'Beat your villain eyes, till you can\'t see!'],
+    ['打你个小人口，打到你有口唔识讲！', 'Beat your villain mouth, till you can\'t talk!'],
+    ['打到你返乡下，从此唔再搞我！', 'Beat you all the way home, never bother me again!'],
+  ];
+  const hasChinese = s => /[㐀-鿿]/.test(s);
+
+  function talkUI(){
+    state = 'talk';
+    const chips = lang === 'zh'
+      ? `<button class="chip" data-s="师傅，唔该帮我打小人！">师傅，唔该帮我打小人！</button>`
+      : `<button class="chip" data-s="Hello! Can you help me beat my villain?">Hello! Can you help me beat my villain?</button>` +
+        (refusals >= 2 ? `<button class="chip" data-s="師傅，唔該！" style="border-color:#ffc94d;color:#ffc94d">💡 Try Cantonese: 「師傅，唔該！」(Si-fu, m-goi!)</button>` : '');
+    tools(`<input id="say" maxlength="40" placeholder="${t('vTalk')}"><button class="btn" id="sayBtn" style="padding:10px 14px">${t('vSend')}</button><div style="width:100%;display:flex;gap:6px;flex-wrap:wrap">${chips}</div>`);
+    const send = s => {
+      s = (s || '').trim(); if(!s) return;
+      if(!hasChinese(s)){
+        const r = REFUSE[refusals % REFUSE.length]; refusals++;
+        speak(r[0], r[1]); shakeHead = 1.2; sfx.no(); buzz(80);
+        talkUI();
       } else {
-        drawDummy(d);
-        if(cutY!==null){
-          ctx.strokeStyle='#ffffff55'; ctx.setLineDash([6,6]); ctx.lineWidth=1.5;
-          ctx.beginPath(); ctx.moveTo(d.x-20,cutY); ctx.lineTo(d.x+d.w+20,cutY); ctx.stroke(); ctx.setLineDash([]);
-          ctx.fillStyle='#2a1708'; ctx.fillRect(d.x+d.w*.15, cutY-3, d.w*.7*Math.min(1,progress), 6);
-        }
+        speak(refusals ? '哦～原来你识讲中文㗎！好啦，你想打边个？写低个名先。' : '好！你想打边个？写低个名先。',
+              refusals ? 'Ohh~ so you DO speak Chinese! Fine, who do you want to hit? Write the name.' : 'OK! Who do you want to hit? Write the name.');
+        nameUI();
       }
-      // 进度
-      if(cutY!==null && !falling){ ctx.fillStyle='#0006'; rr(16,12,W-32,10,5); ctx.fill(); ctx.fillStyle='#ffc94d'; rr(16,12,(W-32)*Math.min(1,progress),10,5); ctx.fill(); }
-      // 锯子跟随手指
-      const sy = cutY!==null && !falling ? cutY : ptr.y || H*.4;
-      drawSaw(ptr.x || W*.75, sy);
-      ctx.fillStyle='#fff9'; ctx.font='15px sans-serif'; ctx.textAlign='center';
-      if(cutY===null && !falling) ctx.fillText('👆 按住木头人身上任意位置，然后左右来回拉锯！', W/2, 40);
-    }
-  };
-};
-
-/* 3. 砸盘子 */
-GAMES.plates = () => {
-  let flying = [], n = 0;
-  const COLORS = ['#ffffff','#f6e7c1','#cfe8ff','#ffd6d6','#d9f5d0'];
-  return {
-    init(){ setScore(0,'砸了 '); },
-    down(x,y){ flying.push({sx:W/2, sy:H+40, x:W/2, y:H+40, tx:x, ty:y, t:0, c:COLORS[n%COLORS.length], r:rand(34,48)}); n++; tone(400,900,.15,.08); },
-    draw(){
-      ctx.fillStyle='#2d2438'; ctx.fillRect(0,0,W,H);
-      // 墙上的瓷砖
-      ctx.strokeStyle='#ffffff0c'; for(let x=0;x<W;x+=50) for(let y=0;y<H;y+=50) ctx.strokeRect(x,y,50,50);
-      for(const p of flying){
-        p.t += .08; const k = Math.min(1,p.t), e = 1-Math.pow(1-k,2);
-        p.x = p.sx + (p.tx-p.sx)*e; p.y = p.sy + (p.ty-p.sy)*e - Math.sin(k*Math.PI)*80;
-        const s = .6 + .4*k;
-        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.t*8); ctx.scale(s,s*.85);
-        ctx.fillStyle=p.c; ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.fill();
-        ctx.strokeStyle='#3d6fb6'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,0,p.r*.8,0,Math.PI*2); ctx.stroke();
-        ctx.strokeStyle='#0001'; ctx.beginPath(); ctx.arc(0,0,p.r*.5,0,Math.PI*2); ctx.stroke();
-        ctx.restore();
-        if(k>=1){
-          p.done = true; setScore(++score,'砸了 '); sfx.crack(); buzz(40); shake = 8;
-          burst(p.tx,p.ty,16,{color:[p.c,p.c,'#3d6fb6'],shape:'shard',smin:6,smax:16,min:3,max:11,up:3,decayK:.6});
-          burst(p.tx,p.ty,20,{color:'#ffffff',min:2,max:9,smin:1,smax:2.5});
-          if(score%10===0) floatText(p.tx,p.ty-30,`${score} 只盘子！`, '#ffc94d', 24);
-        }
-      }
-      flying = flying.filter(p=>!p.done);
-      if(score===0){ ctx.fillStyle='#fff9'; ctx.font='15px sans-serif'; ctx.textAlign='center'; ctx.fillText('👆 点屏幕任何地方丢盘子', W/2, H/2); }
-    }
-  };
-};
-
-/* 4. 泡泡纸 */
-GAMES.bubble = () => {
-  let bubbles = [], R = 26;
-  function build(){
-    R = Math.max(20, Math.min(32, W/14)); bubbles = [];
-    const dx = R*2.2, dy = R*1.95;
-    for(let row=0, y=R+16; y < H-R; y+=dy, row++)
-      for(let x = R+10 + (row%2)*dx/2; x < W-R; x+=dx) bubbles.push({x,y,popped:false,t:0});
+    };
+    $('#sayBtn').onclick = () => send($('#say').value);
+    $('#say').onkeydown = e => { if(e.key === 'Enter') send($('#say').value); };
+    document.querySelectorAll('#tools .chip').forEach(c => c.onclick = () => send(c.dataset.s));
   }
-  function pop(x,y){
-    for(const b of bubbles){
-      if(!b.popped && (b.x-x)**2+(b.y-y)**2 < R*R){
-        b.popped = true; b.t = 1; setScore(++score,'噗 '); sfx.pop(); buzz(12);
-        burst(b.x,b.y,5,{color:'#ffffffaa',min:1,max:3,g:0,smin:1,smax:2});
-        if(bubbles.every(q=>q.popped)){ floatText(W/2,H/2,'全部捏完！再来一张','#ffc94d',24); setTimeout(build, 900); }
-      }
+  function nameUI(){
+    state = 'name';
+    tools(`<input id="vname" maxlength="8" placeholder="${t('vNameIn')}"><button class="btn" id="vgive" style="padding:10px 14px">${t('vGive')}</button>`);
+    $('#vgive').onclick = () => {
+      name = ($('#vname').value.trim() || '小人').slice(0,8); $('#vname').blur();
+      resetPaper();
+      pay(t('payV'), ok => {
+        if(!ok){ speak('唔俾钱？咁唔打喇。', 'Not paying? Then no beating.'); return; }
+        tools(''); state = 'hit'; hint(t('vHint')); setScore(`0${t('hits')}`);
+        speak('好！睇住喇，帮你打走佢！', 'Right! Watch this, I\'ll beat them away!');
+      });
+    };
+  }
+  function doneUI(){
+    state = 'done'; hint('');
+    center(`<h2>${t('vDoneT')}</h2><div class="lbl">${PRICES[currency]} ${t('vUnit')}</div><button class="btn gold" id="again">${t('vAgain')}</button>`);
+    $('#again').onclick = () => { center(''); resetPaper(); name = ''; nameUI(); speak('仲有边个？写低佢个名。', 'Who else? Write the name.'); };
+  }
+  setTimeout(() => {
+    if(lang === 'zh') speak('靓仔靓女，想打小人呀？同我讲啦。', '');
+    else speak('靓仔靓女，想打小人呀？同我讲啦。', '(The master speaks only Cantonese… try telling her what you want)');
+    talkUI();
+  }, 400);
+
+  // ---------- 打 ----------
+  const ray = new T.Raycaster();
+  function applyHit(h){
+    hits++; setScore(`${hits}${t('hits')}`);
+    sfx.slap(); buzz(30); shakeAmt = .07;
+    // 纸起皱
+    const pos = pGeo.attributes.position, lp = paper.worldToLocal(h.point.clone()), r = .26;
+    for(let i=0;i<pos.count;i++){
+      const dx = pos.getX(i)-lp.x, dy = pos.getY(i)-lp.y, d = Math.sqrt(dx*dx+dy*dy);
+      if(d < r){ const f = Math.pow(1-d/r,2); pos.setZ(i, Math.max(-.008, Math.min(.1, pos.getZ(i) + f*rand(-.4,1)*.03 + f*.004))); }
+    }
+    pos.needsUpdate = true; pGeo.computeVertexNormals();
+    // 拖鞋印
+    const cx = h.uv.x*512, cy = (1-h.uv.y)*768, g = pc;
+    g.save(); g.translate(cx,cy); g.rotate(rand(-.5,.5));
+    g.fillStyle = `rgba(40,30,20,${rand(.12,.22)})`; g.beginPath(); g.ellipse(0,0,rand(28,40),rand(60,80),0,0,7); g.fill();
+    g.strokeStyle = 'rgba(30,20,10,.25)'; g.lineWidth = 3; for(let k=-50;k<=50;k+=14){ g.beginPath(); g.moveTo(-26,k); g.lineTo(26,k+rand(-4,4)); g.stroke(); }
+    g.restore();
+    if(hits > 18 && Math.random() < .35){ // 打穿个窿
+      g.save(); g.globalCompositeOperation = 'destination-out'; g.beginPath();
+      const rr = rand(10,24); for(let k=0;k<9;k++){ const a=k/9*6.28, q=rr*rand(.5,1.2); k?g.lineTo(cx+Math.cos(a)*q,cy+Math.sin(a)*q):g.moveTo(cx+Math.cos(a)*q,cy+Math.sin(a)*q); }
+      g.fill(); g.restore();
+    }
+    pTex.needsUpdate = true;
+    for(let i=0;i<6;i++) dust.spawn({pos:h.point.clone(), vel:new T.Vector3(rand(-.8,.8),rand(.3,.9),rand(-.8,.8)), life:rand(.5,.9), s0:.05, s1:.35, op:.35, color:0xd8c89a, drag:.92});
+    floatText(h.point.clone().add(new T.Vector3(0,.25,0)), ['啪！','嘭！','打！','啪啪！'][hits%4], '#ffc94d', 24 + Math.min(hits,30)*.4);
+    if(hits % 6 === 0){ const c = CHANTS[(hits/6-1) % CHANTS.length]; speak(c[0], c[1], 2200); }
+    if(hits >= GOAL){
+      state = 'burn'; burnT = 0; hint(''); sfx.fire();
+      speak('够喇！烧咗佢！打走小人，好运自然来！', 'Enough! Burn it! Villain gone, good luck comes!', 3000);
     }
   }
-  return {
-    init(){ build(); setScore(0,'噗 '); },
-    resize(){ build(); },
-    down: pop, move(x,y,d){ if(d) pop(x,y); },
-    draw(){
-      ctx.fillStyle='#bfe3ef'; ctx.fillRect(0,0,W,H);
-      for(const b of bubbles){
-        if(b.popped){
-          ctx.fillStyle='#9ccbdb'; ctx.beginPath(); ctx.ellipse(b.x,b.y,R*.85,R*.5,.4,0,Math.PI*2); ctx.fill();
-          ctx.strokeStyle='#7fb3c6'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(b.x-R*.5,b.y-R*.2); ctx.lineTo(b.x+R*.4,b.y+R*.25); ctx.stroke();
-        } else {
-          const g = ctx.createRadialGradient(b.x-R*.35,b.y-R*.35,R*.1,b.x,b.y,R);
-          g.addColorStop(0,'#ffffff'); g.addColorStop(.4,'#e6f6fb'); g.addColorStop(1,'#93c9db');
-          ctx.fillStyle=g; ctx.beginPath(); ctx.arc(b.x,b.y,R,0,Math.PI*2); ctx.fill();
-          ctx.strokeStyle='#7fb3c655'; ctx.stroke();
-        }
+  G.down = (p) => {
+    if(state !== 'hit') return;
+    ray.setFromCamera(p, camera);
+    const h = ray.intersectObject(paper)[0];
+    if(!h){ return; }
+    const hitPose = {p:new T.Vector3(h.point.x, paperY+.06, h.point.z+.05), r:new T.Euler(0, rand(-.4,.4), 0)};
+    const raised = {p:new T.Vector3(h.point.x*.6+.15, .75, h.point.z*.4-.75), r:new T.Euler(-2.3,0,.2)};
+    if(anim && anim.t < .5 && !anim.applied){ anim.hit = h; anim.hitPose = hitPose; return; }
+    anim = {t: anim ? .15 : 0, from:cur(), raised, hitPose, hit:h, applied:false};
+  };
+  G.fit = a => { const k = Math.max(1, .95/a); baseCam.set(0, 2.3*Math.min(1.5,.75+k*.25), 3.5*Math.min(1.9, .55+k*.45)); G.camPos.copy(baseCam); };
+  const handPt = new T.Vector3();
+  G.update = dt => {
+    const now = performance.now();
+    if(anim){
+      anim.t += dt/.3; const k = anim.t;
+      if(k < .35) pose(anim.from, anim.raised, easeOut(k/.35));
+      else if(k < .5) pose(anim.raised, anim.hitPose, easeIn((k-.35)/.15));
+      else {
+        if(!anim.applied){ anim.applied = true; applyHit(anim.hit); }
+        if(k < .62) pose(anim.hitPose, anim.hitPose, 1);
+        else if(k < 1) pose(anim.hitPose, rest, easeOut((k-.62)/.38));
+        else { anim = null; pose(rest, rest, 1); }
       }
     }
-  };
-};
-
-/* 5. 打沙包 */
-GAMES.punch = () => {
-  let ang = 0, av = 0, combo = 0, lastHit = 0, fists = [];
-  const pivot = () => ({x:W/2, y:20});
-  const L = () => Math.min(H*.45, 300);
-  return {
-    init(){ setScore(0,'拳数 '); },
-    down(x,y){
-      const p = pivot(), len = L();
-      const bx = p.x + Math.sin(ang)*len, by = p.y + Math.cos(ang)*len;
-      fists.push({x,y,t:1,side: x<W/2?1:-1});
-      if(Math.hypot(x-bx, y-(by+len*.35)) < len*.55 + 20){
-        const now = performance.now(); combo = now-lastHit < 600 ? combo+1 : 1; lastHit = now;
-        av += (x<bx ? 1 : -1) * (.04 + Math.min(combo,20)*.004);
-        setScore(++score,'拳数 '); sfx.punch(); buzz(30); shake = 6 + Math.min(combo,15)*.6;
-        burst(x,y,10,{color:['#fff','#ffc94d'],min:2,max:7,g:0,smin:1.5,smax:3});
-        floatText(x,y-20, combo>2 ? `${combo} 连击!` : ['砰!','啪!','嘭!'][score%3], combo>9?'#ff5d5d':'#ffc94d', 18+Math.min(combo,20));
-      }
-    },
-    draw(){
-      ctx.fillStyle='#232a35'; ctx.fillRect(0,0,W,H);
-      ctx.fillStyle='#1a1f28'; ctx.fillRect(0,H*.82,W,H*.18);
-      av += -ang*.012; av *= .985; ang += av; ang = Math.max(-1.2,Math.min(1.2,ang));
-      const p = pivot(), len = L();
-      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(-ang);
-      ctx.strokeStyle='#888'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,len); ctx.stroke();
-      const bw = Math.min(W*.32, 130), bh = len*.75;
-      ctx.fillStyle='#b8312f'; rr(-bw/2, len, bw, bh, bw*.35); ctx.fill();
-      ctx.fillStyle='#8e2321'; ctx.fillRect(-bw/2, len+bh*.15, bw, 10); ctx.fillRect(-bw/2, len+bh*.8, bw, 10);
-      ctx.fillStyle='#ffffff22'; rr(-bw/2+10, len+12, 14, bh-24, 7); ctx.fill();
-      ctx.restore();
-      for(const f of fists){
-        f.t -= .1; ctx.save(); ctx.globalAlpha = Math.max(0,f.t);
-        ctx.font = `${50 + (1-f.t)*20}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.translate(f.x, f.y); ctx.scale(f.side,1); ctx.fillText('🥊',0,0); ctx.restore();
-      }
-      fists = fists.filter(f=>f.t>0);
-      if(score===0){ ctx.fillStyle='#fff9'; ctx.font='15px sans-serif'; ctx.textAlign='center'; ctx.fillText('👆 狂点沙包出拳，连得越快越猛', W/2, H-30); }
+    // 手臂跟住拖鞋
+    handPt.set(0,.02,.22).applyEuler(slipper.rotation).add(slipper.position);
+    stretch(armR, shoulderR, handPt); handR.position.copy(handPt);
+    // 师傅动作：讲嘢、摇头、呼吸
+    const talking = now < talkUntil;
+    mouth.scale.y = talking ? 1 + Math.abs(Math.sin(now/70))*4 : 1;
+    if(shakeHead > 0){ shakeHead -= dt; headG.rotation.y = Math.sin(now/55)*.45*Math.min(1,shakeHead); } else headG.rotation.y *= .9;
+    headG.rotation.x = anim ? -.15 : Math.sin(now/900)*.04;
+    body.scale.x = body.scale.z = 1 + Math.sin(now/700)*.015;
+    if(bubbleOn){
+      headG.getWorldPosition(headW); headW.y += .45; const s = toScreen(headW);
+      const b = $('#bubble'); b.style.left = Math.max(110, Math.min(stage.clientWidth-110, s.x)) + 'px'; b.style.top = Math.max(b.offsetHeight+6, s.y) + 'px';
+      if(!talking && now > talkUntil + 2500 && state === 'hit'){ b.style.display = 'none'; bubbleOn = false; }
     }
-  };
-};
-
-/* 6. 大喊大叫（按住 = 爆发音浪，可选麦克风） */
-GAMES.scream = () => {
-  let level = 0, holding = false, mic = null, analyser = null, data = null, peak = 0, rings = [], stream = null;
-  async function enableMic(){
-    try{
-      stream = await navigator.mediaDevices.getUserMedia({audio:true});
-      const a = ac(); mic = a.createMediaStreamSource(stream); analyser = a.createAnalyser(); analyser.fftSize = 512;
-      data = new Uint8Array(analyser.fftSize); mic.connect(analyser);
-      $('#micBtn').textContent = '🎤 麦克风已开'; $('#micBtn').disabled = true;
-    }catch(e){ $('#micBtn').textContent = '无法使用麦克风，按住屏幕也可以'; }
-  }
-  return {
-    init(){
-      setScore(0,'最高音量 ');
-      $('#tools').innerHTML = `<button class="btn" id="micBtn" style="flex:1">🎤 开启麦克风，对着手机大喊</button>`;
-      $('#micBtn').onclick = enableMic;
-    },
-    down(){ holding = true; },
-    up(){ holding = false; },
-    stop(){ if(stream) stream.getTracks().forEach(t=>t.stop()); },
-    draw(){
-      let target = holding ? 1 : 0;
-      if(analyser){ analyser.getByteTimeDomainData(data); let m=0; for(const v of data) m = Math.max(m, Math.abs(v-128)); target = Math.max(target, Math.min(1, m/90)); }
-      level += (target-level)*.2;
-      const pct = Math.round(level*100); if(pct > peak){ peak = pct; setScore(peak,'最高音量 '); }
-      ctx.fillStyle = `hsl(${260 - level*260},45%,${14+level*12}%)`; ctx.fillRect(0,0,W,H);
-      if(level > .25 && Math.random() < level*.6) rings.push({r:40, a:1});
-      for(const r of rings){ r.r += 6 + level*10; r.a -= .02; ctx.strokeStyle = `rgba(255,${200-level*150},80,${r.a})`; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(W/2,H/2,r.r,0,Math.PI*2); ctx.stroke(); }
-      rings = rings.filter(r=>r.a>0);
-      if(level > .6) shake = Math.max(shake, level*10);
-      if(level > .5 && Math.random()<.3) burst(W/2,H/2,3,{color:['#ffc94d','#ff5d5d'],min:4,max:12,g:0});
-      const s = 60 + level*90;
-      ctx.font = `${s}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(level>.7?'😱':level>.35?'😫':'😶', W/2, H/2);
-      ctx.fillStyle='#fff'; ctx.font=`bold ${20+level*30}px sans-serif`;
-      ctx.fillText(level>.7?'啊啊啊啊啊！！！':level>.35?'啊啊啊——':'按住屏幕 / 对麦克风大喊', W/2, H/2 + s*.9);
-      ctx.fillStyle='#0006'; rr(16,12,W-32,14,7); ctx.fill(); ctx.fillStyle='#ff5d5d'; rr(16,12,(W-32)*level,14,7); ctx.fill();
-      if(holding && Math.random()<.25) tone(200+level*400, 150+level*300, .12, .05, 'sawtooth');
+    // 烧纸
+    if(state === 'burn'){
+      burnT += dt; const k = Math.min(1, burnT/2.6), g = pc, edge = 768*(1-k);
+      g.save(); g.globalCompositeOperation = 'destination-out'; g.beginPath(); g.moveTo(0,768);
+      for(let x=0;x<=512;x+=16) g.lineTo(x, edge + 8 + Math.sin(x*.05+burnT*4)*14 + rand(-6,6));
+      g.lineTo(512,768); g.closePath(); g.fill(); g.restore();
+      const gr = g.createLinearGradient(0,edge-40,0,edge+20); gr.addColorStop(0,'rgba(60,30,10,0)'); gr.addColorStop(1,'rgba(30,15,5,.9)');
+      g.fillStyle = gr; g.fillRect(0,edge-40,512,60); pTex.needsUpdate = true;
+      const fz = paperZ + (.5-k)*PH; // 火线位置
+      for(let i=0;i<3;i++) flames.spawn({pos:new T.Vector3(rand(-PW/2,PW/2), paperY+.05, fz), vel:new T.Vector3(rand(-.1,.1), rand(.6,1.3), rand(-.1,.1)), life:rand(.4,.8), s0:rand(.2,.35), s1:.05, op:.9, color:[0xff7a1a,0xffb340,0xff4010][i], drag:.99});
+      if(Math.random() < .5) dust.spawn({pos:new T.Vector3(rand(-.4,.4), paperY+.3, fz), vel:new T.Vector3(rand(-.1,.1),rand(.4,.7),0), life:2.5, s0:.15, s1:.9, op:.3, color:0x555555, drag:.99, sway:.3});
+      if(burnT > 3.2){ floatText(new T.Vector3(0,0,.2), '✨ 好运来 ✨', '#ffe08a', 32); sfx.coin(); doneUI(); }
     }
+    // 蜡烛火 + 香烟
+    for(const c of candles) if(Math.random() < .5) flames.spawn({pos:c.clone(), vel:new T.Vector3(rand(-.02,.02),rand(.15,.3),0), life:rand(.15,.3), s0:.16, s1:.05, op:.9, color:0xffa040, drag:1});
+    for(const c of incense) if(Math.random() < .06) dust.spawn({pos:c.clone(), vel:new T.Vector3(0,rand(.2,.3),0), life:3, s0:.03, s1:.35, op:.18, color:0xcccccc, drag:1, sway:.3});
+    candleLight.intensity = 1.4 + Math.sin(now/60)*.15 + Math.random()*.2 + (state==='burn'?2:0);
+    if(state === 'burn') candleLight.position.set(0,-.3,.2); else candleLight.position.set(-1.25,-.35,.25);
+    flames.update(dt); dust.update(dt);
   };
-};
+  G.stop = () => { flames.clear(); dust.clear(); };
+  return G;
+}
 
-renderHome();
+applyI18n();
 </script>
 </body>
 </html>

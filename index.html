@@ -65,6 +65,26 @@
   .mic.rec{background:#e11d48;animation:pulse 1s infinite}
   @keyframes pulse{50%{box-shadow:0 0 0 8px #e11d4844}}
   .heard{width:100%;text-align:center;font-size:13px;color:var(--muted);min-height:18px}
+  .bxtabs{display:flex;gap:8px;width:100%;justify-content:center}
+  .bxrow{display:flex;align-items:center;gap:8px;width:100%}
+  .bxrow>span{width:56px;flex:none;font-size:13px;color:var(--muted)}
+  .bxrow>div{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+  .bxrow .pill{padding:5px 10px;font-size:13px}
+  .sw{width:28px;height:28px;border-radius:50%;border:2px solid #ffffff33;cursor:pointer;padding:0}
+  .sw.sel{border-color:var(--gold);box-shadow:0 0 0 2px #ffc94d66}
+  .fb{flex:1;height:66px;border:0;border-radius:14px;background:#ffffff1f;color:#fff;font-size:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none}
+  .fb small{font-size:11px;margin-top:2px}
+  .fb.red{background:#d63031cc}.fb.blue{background:#2a6ad8cc}
+  .fb.on{transform:scale(.93);filter:brightness(1.3)}
+  #fhud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:8px;padding:8px 10px;z-index:2;pointer-events:none;background:linear-gradient(#000a,#0000)}
+  #fhud .fs{flex:1;font-size:13px}
+  #fhud .fs.r{text-align:right}
+  #fhud .hp{height:12px;background:#0008;border:1px solid #fff5;border-radius:6px;overflow:hidden;margin-top:3px}
+  #fhud .hp i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ffd34d,#ff7a3d);transition:width .15s}
+  #fhud .fs.r .hp i{margin-left:auto;background:linear-gradient(90deg,#ff3b3b,#ff9d5c)}
+  #fhud .ft2{font-size:24px;font-weight:900;color:#fff;min-width:40px;text-align:center;text-shadow:0 2px 6px #000}
+  #hurtFlash{position:absolute;inset:0;pointer-events:none;background:radial-gradient(transparent 40%,#ff000099);opacity:0;transition:opacity .25s;z-index:1}
+  #warnMark{position:absolute;transform:translate(-50%,-100%);font-size:34px;display:none;pointer-events:none;z-index:2;animation:pulse 0.3s infinite}
   .modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:10;padding:16px}
   .modal.on{display:flex}
   .modal .box{background:#fff;color:#222;border-radius:18px;padding:22px;max-width:360px;width:100%;text-align:center}
@@ -91,6 +111,7 @@
   </div>
   <div class="cards">
     <div class="card" data-g="villain"><div class="ico">🩴</div><div><b data-i="vName"></b><span data-i="vDesc"></span><div class="price"><span class="p"></span> <span data-i="vUnit" style="display:inline;color:inherit"></span></div></div></div>
+    <div class="card" data-g="boxing"><div class="ico">🥊</div><div><b data-i="bName"></b><span data-i="bDesc"></span><div class="price"><span class="p"></span> <span data-i="bUnit" style="display:inline;color:inherit"></span></div></div></div>
     <div class="card" data-g="smoke"><div class="ico">🚬</div><div><b data-i="sName"></b><span data-i="sDesc"></span><div class="price"><span class="p"></span> <span data-i="sUnit" style="display:inline;color:inherit"></span></div></div></div>
   </div>
   <p class="small" style="margin-top:22px" data-i="foot"></p>
@@ -132,6 +153,7 @@ const I18N = {
   zh: {
     title:'解压小铺', sub:'压力大？进来发泄一下。<br>纯属游戏，玩完记得深呼吸 😮‍💨', langLbl:'语言', curLbl:'付款货币',
     vName:'打小人', vDesc:'方块婆婆问你要做咩——讲得出中文，就有拖鞋任你拍', vUnit:'/ 每打一张',
+    bName:'办公室拳击', bDesc:'自己捏角色，把老板/同事做出来，在办公室对打', bUnit:'/ 每一场',
     sName:'抽根烟', sDesc:'深夜后巷，落魄打工仔的一根烟。按住吸，放开呼', sUnit:'/ 每一根',
     foot:'所有内容均为虚拟游戏。请勿用于伤害或骚扰任何真实人士。虚拟香烟零尼古丁，现实中吸烟有害健康。',
     back:'← 返回', demo:'演示模式', demoTxt:'这是付款流程的演示版，正式上线时会接入真正的支付渠道（Stripe / Touch \'n Go / FPX / PayMe 等）。',
@@ -144,6 +166,7 @@ const I18N = {
   en: {
     title:'Stress Shop', sub:'Stressed out? Come let it out.<br>It\'s just a game — take a deep breath after 😮‍💨', langLbl:'Language', curLbl:'Currency',
     vName:'Villain Hitting', vDesc:'A blocky HK granny — if she understands your Chinese, you get the slipper', vUnit:'/ per villain',
+    bName:'Office Boxing', bDesc:'Build yourself and your boss or coworker, then box it out in the office', bUnit:'/ per match',
     sName:'Smoke Break', sDesc:'A worn-out office worker\'s late-night smoke in the alley. Hold to inhale, release to exhale', sUnit:'/ per cigarette',
     foot:'Everything here is a virtual game. Do not use it to harm or harass real people. Virtual cigarettes, zero nicotine — real smoking harms your health.',
     back:'← Back', demo:'DEMO', demoTxt:'This is a demo of the checkout. The live version would connect to a real payment provider (Stripe / Touch \'n Go / FPX / PayMe...).',
@@ -304,9 +327,9 @@ function tools(html){ $('#tools').innerHTML = html || ''; }
 function startGame(id){
   initRenderer();
   $('#home').classList.remove('on'); $('#game').classList.add('on');
-  $('#gTitle').textContent = id === 'smoke' ? '🚬 ' + t('sName') : '🩴 ' + t('vName');
+  $('#gTitle').textContent = {smoke:'🚬 ' + t('sName'), villain:'🩴 ' + t('vName'), boxing:'🥊 ' + t('bName')}[id];
   setScore(''); hint(''); center(''); tools(''); $('#bubble').style.display = 'none'; $('#luck').style.display = 'none'; $('#lung').style.display = 'none';
-  game = id === 'smoke' ? SmokeGame() : VillainGame();
+  game = id === 'smoke' ? SmokeGame() : id === 'boxing' ? BoxingGame() : VillainGame();
   resize(); clock.getDelta();
   cancelAnimationFrame(raf); loop();
 }
@@ -1330,6 +1353,477 @@ function VillainGame(){
     cubes.update(dt);
   };
   G.stop = () => { cubes.clear(); stopChant(); if(rec){ try{ rec.abort(); }catch(e){} rec = null; } };
+  return G;
+}
+
+/* =========================================================
+   游戏三：办公室拳击（方块风 · 自创角色 · 背后视角）
+   ========================================================= */
+const BX = {
+  SKINS:[0xf2d3b3,0xe0b48c,0xc68e62,0x8d5a3b,0x5c3a24],
+  HAIRS:['short','long','bald','pony','curly','comb'],
+  HAIRC:[0x1d1612,0x5a3a22,0x9a9a9a,0xd8b45a,0xa8322a,0x3a5ad8],
+  SHIRTS:[0xe8e8e8,0x6a9ad8,0xe8a0b8,0x2a2a30,0x6ab07a,0xd8c070],
+  TIES:{none:null, red:0xb3141b, blue:0x1a3a8a, gold:0xd4af37},
+  PANTS:[0x22283a,0x4a4a4a,0x8a7a5a,0x151515],
+  GLASSES:['none','round','sun'], BEARD:['none','stubble','mustache'], BUILD:['slim','normal','fat'],
+  GLOVES:[0xd63031,0x2a6ad8,0x2ab050,0xf0c030,0x151515],
+};
+const BX_PRESETS = {
+  me:       {name:'我', skin:1, hair:'short', hairC:0, shirt:1, tie:'none', pants:0, glasses:'none', beard:'none', build:'normal', glove:1},
+  boss:     {name:'老板', skin:0, hair:'comb', hairC:2, shirt:3, tie:'red', pants:3, glasses:'round', beard:'mustache', build:'fat', glove:0},
+  cowork:   {name:'抢功劳同事', skin:1, hair:'pony', hairC:1, shirt:2, tie:'none', pants:1, glasses:'none', beard:'none', build:'slim', glove:3},
+  client:   {name:'难搞客户', skin:2, hair:'curly', hairC:0, shirt:4, tie:'gold', pants:2, glasses:'sun', beard:'stubble', build:'normal', glove:4},
+};
+function bxLoad(){ try{ const v = JSON.parse(localStorage.getItem('officeBoxing')||'null'); if(v && v.me && v.opp) return v; }catch(e){} return {me:{...BX_PRESETS.me}, opp:{...BX_PRESETS.boss}}; }
+function bxSave(v){ try{ localStorage.setItem('officeBoxing', JSON.stringify(v)); }catch(e){} }
+
+// ---- 方块人物（脸可以换表情）----
+const bxFaceCache = {};
+function bxFaceTex(c, expr){
+  const key = JSON.stringify(c) + expr; if(bxFaceCache[key]) return bxFaceCache[key];
+  const skin = BX.SKINS[c.skin], hair = BX.HAIRC[c.hairC];
+  const tx = pixTex(16,16,(g)=>{
+    noiseFill(g,0,0,16,16,skin,.04);
+    const H = (x,y,w,h) => noiseFill(g,x,y,w,h,hair,.15);
+    if(c.hair === 'short'){ H(0,0,16,3); H(0,3,3,1); H(13,3,3,1); H(0,3,1,4); H(15,3,1,4); }
+    else if(c.hair === 'long'){ H(0,0,16,3); H(0,3,4,1); H(12,3,4,1); H(0,3,2,11); H(14,3,2,11); }
+    else if(c.hair === 'pony'){ H(0,0,16,3); H(0,3,1,3); H(15,3,1,3); H(1,3,5,1); }
+    else if(c.hair === 'curly'){ H(0,0,16,4); for(let x=0;x<16;x+=3) H(x,4,2,1); H(0,4,1,4); H(15,4,1,4); }
+    else if(c.hair === 'comb'){ H(0,3,2,5); H(14,3,2,5); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(3,1,10,1); }
+    else if(c.hair === 'bald'){ g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(9,1,3,1); }
+    const dark = '#1a1410';
+    // 眉
+    g.fillStyle = dark;
+    if(expr === 'angry'){ g.fillRect(2,5,2,1); g.fillRect(4,6,2,1); g.fillRect(10,6,2,1); g.fillRect(12,5,2,1); }
+    else if(expr === 'hurt' || expr === 'ko'){ g.fillRect(2,6,2,1); g.fillRect(4,5,2,1); g.fillRect(10,5,2,1); g.fillRect(12,6,2,1); }
+    else { g.fillRect(2,6,4,1); g.fillRect(10,6,4,1); }
+    // 眼
+    const eye = (x) => {
+      if(expr === 'ko'){ g.fillStyle = dark; g.fillRect(x,7,1,1); g.fillRect(x+2,7,1,1); g.fillRect(x+1,8,1,1); g.fillRect(x,9,1,1); g.fillRect(x+2,9,1,1); }
+      else if(expr === 'hurt' && x < 8){ g.fillStyle = dark; g.fillRect(x,7,1,1); g.fillRect(x+1,8,2,1); g.fillRect(x,9,1,1); }
+      else if(expr === 'happy'){ g.fillStyle = dark; g.fillRect(x,8,1,1); g.fillRect(x+1,7,1,1); g.fillRect(x+2,8,1,1); }
+      else { g.fillStyle = '#f4f1ea'; g.fillRect(x,7,3,2); g.fillStyle = '#111'; g.fillRect(x+1,7,1,2); }
+    };
+    eye(2); eye(11);
+    if(expr === 'hurt' || expr === 'ko'){ g.fillStyle = '#7a4a8a'; g.fillRect(11,9,3,1); g.fillRect(12,10,2,1); }
+    // 眼镜
+    if(c.glasses === 'round'){ g.fillStyle = '#5a3a1a'; [1,10].forEach(x => { g.fillRect(x,6,5,1); g.fillRect(x,9,5,1); g.fillRect(x,6,1,4); g.fillRect(x+4,6,1,4); }); g.fillRect(6,7,4,1); }
+    if(c.glasses === 'sun' && expr !== 'ko'){ g.fillStyle = '#0a0a0c'; g.fillRect(1,7,6,3); g.fillRect(9,7,6,3); g.fillRect(7,7,2,1); g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(2,7,2,1); g.fillRect(10,7,2,1); }
+    // 鼻
+    g.fillStyle = 'rgba(0,0,0,.14)'; g.fillRect(7,9,2,2);
+    // 胡
+    if(c.beard === 'stubble'){ for(let i=0;i<24;i++){ g.fillStyle = 'rgba(30,22,18,.45)'; g.fillRect(rand(2,14)|0, rand(11,16)|0, 1, 1); } }
+    if(c.beard === 'mustache'){ noiseFill(g,5,11,6,1,hair,.1); g.fillRect(4,12,1,1); g.fillRect(11,12,1,1); }
+    // 嘴
+    g.fillStyle = '#6a2a2a';
+    if(expr === 'ko'){ g.fillRect(6,12,4,3); g.fillStyle = '#2a0a0a'; g.fillRect(7,13,2,1); }
+    else if(expr === 'hurt'){ g.fillRect(5,13,2,1); g.fillRect(7,12,2,1); g.fillRect(9,13,2,1); }
+    else if(expr === 'angry'){ g.fillRect(6,13,4,1); g.fillRect(5,14,1,1); g.fillRect(10,14,1,1); }
+    else if(expr === 'happy'){ g.fillRect(6,13,4,1); g.fillRect(5,12,1,1); g.fillRect(10,12,1,1); }
+    else g.fillRect(6,13,4,1);
+    if(expr === 'angry'){ g.fillStyle = 'rgba(220,40,40,.25)'; g.fillRect(1,10,3,2); g.fillRect(12,10,3,2); }
+  });
+  return bxFaceCache[key] = tx;
+}
+function bxHeadTex(c, part, flip){
+  const skin = BX.SKINS[c.skin], hair = BX.HAIRC[c.hairC];
+  return pixTex(16,16,(g)=>{
+    noiseFill(g,0,0,16,16,skin,.04);
+    const H = (x,y,w,h) => noiseFill(g, flip ? 16-x-w : x, y, w, h, hair, .15);
+    if(part === 'top'){ if(c.hair === 'bald'){ g.fillStyle='rgba(255,255,255,.3)'; g.fillRect(6,6,3,2); } else if(c.hair === 'comb'){ g.fillStyle = BX_hex(hair); g.fillRect(2,4,12,1); g.fillRect(2,8,12,1); g.fillRect(2,12,12,1); } else H(0,0,16,16); return; }
+    if(part === 'back'){ if(c.hair === 'bald') return; if(c.hair === 'comb'){ H(0,6,16,8); return; } H(0,0,16, c.hair === 'long' ? 16 : 12); return; }
+    // side
+    if(c.hair === 'bald'){ g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(flip?6:8,7,2,3); return; }
+    if(c.hair === 'comb'){ H(0,5,8,6); return; }
+    H(0,0,16,5); H(0,0,7, c.hair === 'long' ? 16 : 11);
+    g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(flip?6:8,7,2,3);
+  });
+}
+const BX_hex = h => '#' + h.toString(16).padStart(6,'0');
+function makeFighter(c){
+  const root = new T.Group(), rig = new T.Group(); root.add(rig);
+  const W = {slim:.44, normal:.5, fat:.62}[c.build], D = {slim:.24, normal:.27, fat:.36}[c.build];
+  const shirtHex = BX.SHIRTS[c.shirt], pantsHex = BX.PANTS[c.pants];
+  const shirtT = pixTex(16,16,(g)=>{ noiseFill(g,0,0,16,16,shirtHex,.05); g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(7,0,1,16); g.fillStyle='rgba(255,255,255,.55)'; [3,7,11].forEach(y => g.fillRect(8,y,1,1)); g.fillStyle='rgba(0,0,0,.1)'; g.fillRect(2,5,4,1); g.fillRect(10,10,4,1); });
+  const sleeveT = pixTex(8,8,(g)=>noiseFill(g,0,0,8,8,shirtHex,.05));
+  const pantsT = pixTex(8,8,(g)=>noiseFill(g,0,0,8,8,pantsHex,.08));
+  const skinT = pixTex(8,8,(g)=>noiseFill(g,0,0,8,8,BX.SKINS[c.skin],.04));
+  [-1,1].forEach(s => { const l = vbox(.21,.76,.22,lam({map:pantsT})); l.position.set(s*W*.24,.48,0); rig.add(l); const sh = vbox(.22,.1,.3,lam(0x15110e)); sh.position.set(s*W*.24,.05,.04); rig.add(sh); });
+  const torso = vbox(W,.66,D,lam({map:shirtT})); torso.position.y = 1.19; rig.add(torso);
+  const belt = vbox(W*1.02,.05,D*1.02,lam(0x1a1410)); belt.position.y = .88; rig.add(belt);
+  if(c.build === 'fat'){ const belly = vbox(W*.78,.32,.1,lam({map:shirtT})); belly.position.set(0,1.05,D/2+.04); rig.add(belly); }
+  if(BX.TIES[c.tie]){ const tm = lam(BX.TIES[c.tie]); const tie = vbox(.08,.36,.02,tm); tie.position.set(0,1.3,D/2+(c.build==='fat'?.1:.012)); rig.add(tie); const kn = vbox(.1,.06,.03,tm); kn.position.set(0,1.49,D/2+.013); rig.add(kn); }
+  const headG = new T.Group(); headG.position.y = 1.74; rig.add(headG);
+  const faceMat = lam({map:bxFaceTex(c,'normal')});
+  const head = new T.Mesh(new T.BoxGeometry(.44,.44,.44), [lam({map:bxHeadTex(c,'side',true)}), lam({map:bxHeadTex(c,'side',false)}), lam({map:bxHeadTex(c,'top')}), lam({map:skinT}), faceMat, lam({map:bxHeadTex(c,'back')})]);
+  head.castShadow = true; headG.add(head);
+  const hairM = lam({map:pixTex(8,8,(g)=>noiseFill(g,0,0,8,8,BX.HAIRC[c.hairC],.15))});
+  if(c.hair === 'long'){ const h = vbox(.46,.55,.08,hairM); h.position.set(0,-.18,-.25); headG.add(h); }
+  if(c.hair === 'pony'){ const h = vbox(.12,.3,.12,hairM); h.position.set(0,-.02,-.28); h.rotation.x = .3; headG.add(h); }
+  if(c.hair === 'curly'){ for(let i=0;i<8;i++){ const h = vbox(.12,.1,.12,hairM); h.position.set(rand(-.18,.18),.24,rand(-.18,.15)); headG.add(h); } }
+  const gloveM = lam({map:pixTex(8,8,(g)=>{ noiseFill(g,0,0,8,8,BX.GLOVES[c.glove],.08); g.fillStyle='rgba(255,255,255,.3)'; g.fillRect(1,1,2,1); g.fillStyle='rgba(255,255,255,.8)'; g.fillRect(0,6,8,1); })});
+  function mkArm(s){
+    const p = new T.Group(); p.position.set(s*(W/2+.085),1.46,0); rig.add(p);
+    const up = vbox(.16,.5,.16,lam({map:sleeveT})); up.position.y = -.25; p.add(up);
+    const wrist = vbox(.12,.06,.12,lam({map:skinT})); wrist.position.y = -.48; p.add(wrist);
+    const glove = vbox(.23,.23,.25,gloveM); glove.position.y = -.6; p.add(glove);
+    return {p, glove, side:s, base:p.position.clone()};
+  }
+  const armL = mkArm(-1), armR = mkArm(1);
+  const exprCache = {};
+  return {root, rig, headG, torso, armL, armR, cfg:c, gloveM,
+    setFace(e){ if(this.face === e) return; this.face = e; faceMat.map = bxFaceTex(c, e); faceMat.needsUpdate = true; },
+    act:'idle', at:0, dur:0, hp:100, face:'normal'};
+}
+
+// ---- 声音 ----
+const bxSfx = {
+  hit(h){ tone(120,45,.16,.6+h*.3); noise(.09,{freq:900,q:.7,vol:.5+h*.3}); if(h) noise(.14,{freq:300,q:.8,vol:.4}); },
+  whoosh(){ noise(.16,{freq:1300,q:.7,vol:.18,curve:-1}); },
+  block(){ tone(320,220,.07,.25,'square'); noise(.05,{freq:2600,q:1.2,vol:.25}); },
+  bell(){ [0,.32,.64].forEach(d => setTimeout(() => { tone(1250,1240,1.1,.18); tone(2510,2500,.8,.06); }, d*1000)); },
+  ding(){ tone(1250,1240,1.4,.2); tone(2510,2500,1,.07); },
+  cheer(){ noise(1.4,{freq:700,q:1.2,vol:.12,curve:-1}); noise(1.2,{freq:1500,q:2,vol:.05,curve:-1}); },
+  ooh(){ noise(1,{freq:550,q:4,vol:.14,curve:-1}); },
+  thud(){ tone(85,30,.45,.9); noise(.25,{freq:250,vol:.4}); },
+  key(){ noise(.012,{freq:rand(3000,5000),q:2,vol:.05}); },
+  phone(){ for(let i=0;i<4;i++) setTimeout(() => tone(i%2?1600:1400, i%2?1600:1400, .1, .04,'square'), i*110); },
+};
+
+function BoxingGame(){
+  scene = new T.Scene();
+  scene.background = new T.Color(0xb8c8d8); scene.fog = new T.Fog(0xb8c8d8, 9, 22);
+  camera = new T.PerspectiveCamera(50, 1, .05, 60);
+  const G = { camPos:new T.Vector3(0,1.3,4.2), camLook:new T.Vector3(0,1,0) };
+  const save = bxLoad();
+
+  // ---- 办公室 ----
+  scene.add(new T.AmbientLight(0xd8dcf0, .75));
+  const sun = new T.DirectionalLight(0xfff4e0, .55); sun.position.set(-3,6,-6); sun.castShadow = true; sun.shadow.mapSize.set(1024,1024); Object.assign(sun.shadow.camera,{left:-5,right:5,top:5,bottom:-5}); scene.add(sun);
+  const ceilLight = new T.PointLight(0xffffff, .6, 10); ceilLight.position.set(0,3.2,0); scene.add(ceilLight);
+  const carpet = pixTex(16,16,(g)=>{ noiseFill(g,0,0,16,16,0x55606e,.1); g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(0,15,16,1); g.fillRect(15,0,1,16); }, [14,14]);
+  const floor = new T.Mesh(new T.PlaneGeometry(16,16), lam({map:carpet})); floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
+  const wallT = pixTex(8,8,(g)=>noiseFill(g,0,0,8,8,0xd8d6cf,.03));
+  const backWall = vbox(10,3.6,.2,lam({map:wallT})); backWall.position.set(0,1.8,-4.6); scene.add(backWall);
+  [-4,4].forEach(x => { const w = vbox(.2,3.6,10,lam({map:wallT})); w.position.set(x,1.8,0); scene.add(w); });
+  const ceil = vbox(10,.1,10,lam(0xe8e8e8)); ceil.position.set(0,3.55,0); scene.add(ceil);
+  for(let x=-2;x<=2;x+=2) for(let z=-3;z<=2;z+=2.5){ const l = vbox(1,.04,.4,new T.MeshBasicMaterial({color:0xf8fbff})); l.position.set(x,3.49,z); scene.add(l); }
+  // 窗 + 城市
+  const cityT = pixTex(64,24,(g)=>{ const gr = g.createLinearGradient(0,0,0,24); gr.addColorStop(0,'#7fb4e6'); gr.addColorStop(1,'#cfe4f5'); g.fillStyle = gr; g.fillRect(0,0,64,24);
+    for(let x=0;x<64;){ const w = 3+(Math.random()*5|0), h = 6+(Math.random()*14|0); noiseFill(g,x,24-h,w,h,[0x5a6a80,0x6a7a90,0x4a5a70][(Math.random()*3)|0],.05); g.fillStyle='rgba(255,240,180,.6)'; for(let y=24-h+1;y<23;y+=2) for(let xx=x+1;xx<x+w-1;xx+=2) if(Math.random()<.4) g.fillRect(xx,y,1,1); x += w; } });
+  const win = new T.Mesh(new T.PlaneGeometry(6.4,1.8), new T.MeshBasicMaterial({map:cityT})); win.position.set(0,2,-4.49); scene.add(win);
+  for(let x=-3.2;x<=3.2;x+=1.6){ const f = vbox(.08,1.9,.06,lam(0x404650)); f.position.set(x,2,-4.47); scene.add(f); }
+  // 白板 KPI
+  const wbT = pixTex(32,20,(g)=>{ g.fillStyle='#f8f8f8'; g.fillRect(0,0,32,20); g.fillStyle='#222'; g.fillRect(2,2,1,16); g.fillRect(2,17,28,1); g.fillStyle='#d62020'; let y=4; for(let x=3;x<29;x++){ y += Math.random()<.6?.45:-.2; g.fillRect(x,Math.min(16,y|0),1,1);} g.fillStyle='#2050c0'; g.font='bold 6px sans-serif'; g.fillText('KPI',20,7); });
+  const wb = vbox(1.6,1,.05,lam({map:wbT})); wb.position.set(-3.88,1.7,-1.6); wb.rotation.y = Math.PI/2; scene.add(wb);
+  // 时钟
+  const clockT = pixTex(16,16,(g)=>{ g.fillStyle='#333'; g.fillRect(0,0,16,16); g.fillStyle='#fafafa'; g.fillRect(1,1,14,14); g.fillStyle='#111'; g.fillRect(7,3,2,6); g.fillRect(8,7,4,2); });
+  const clk = vbox(.5,.5,.06,lam({map:clockT})); clk.position.set(3.88,2.6,-1); clk.rotation.y = -Math.PI/2; scene.add(clk);
+  // 办公台、电脑、椅
+  const screenT = pixTex(16,10,(g)=>{ g.fillStyle='#1a3a6a'; g.fillRect(0,0,16,10); g.fillStyle='#e8f0ff'; g.fillRect(1,1,14,8); g.fillStyle='#b8c8e8'; for(let y=2;y<9;y+=2) g.fillRect(1,y,14,1); for(let x=4;x<15;x+=4) g.fillRect(x,1,1,8); g.fillStyle='#3a8a3a'; g.fillRect(2,2,2,1); });
+  const deskM = lam(0xc8b090), legM = lam(0x60656c), chairM = lam(0x2a2d34);
+  [[-2.6,-1.6],[2.6,-1.6],[-2.6,.9],[2.6,.9],[-1.2,-3.4],[1.2,-3.4]].forEach(([x,z],i) => {
+    const top = vbox(1.4,.06,.7,deskM); top.position.set(x,.76,z); scene.add(top);
+    [[-.62,-.3],[.62,-.3],[-.62,.3],[.62,.3]].forEach(([dx,dz]) => { const l = vbox(.05,.74,.05,legM); l.position.set(x+dx,.37,z+dz); scene.add(l); });
+    const mon = vbox(.55,.36,.04,lam(0x222222)); mon.position.set(x,1.06,z-.18); scene.add(mon);
+    const scr = new T.Mesh(new T.PlaneGeometry(.5,.31), new T.MeshBasicMaterial({map:screenT})); scr.position.set(x,1.06,z-.157); scene.add(scr);
+    const st = vbox(.06,.14,.06,legM); st.position.set(x,.86,z-.2); scene.add(st);
+    const kb = vbox(.42,.02,.14,lam(0x333333)); kb.position.set(x,.8,z+.08); scene.add(kb);
+    const mug = vbox(.08,.1,.08,lam([0xffffff,0xd63031,0x2a6ad8][i%3])); mug.position.set(x+.5,.84,z+.1); scene.add(mug);
+    const papers = vbox(.25,.06,.32,lam(0xf4f4f0)); papers.position.set(x-.48,.82,z); papers.rotation.y = rand(-.3,.3); scene.add(papers);
+    const seat = vbox(.5,.08,.5,chairM); seat.position.set(x+(i%2?-.1:.1),.48,z+.65); scene.add(seat);
+    const backR = vbox(.5,.55,.08,chairM); backR.position.set(x+(i%2?-.1:.1),.8,z+.92); scene.add(backR);
+    const pole = vbox(.06,.4,.06,legM); pole.position.set(x+(i%2?-.1:.1),.24,z+.65); scene.add(pole);
+  });
+  // 饮水机、打印机、盆栽
+  const cooler = vbox(.4,1,.4,lam(0xeeeeee)); cooler.position.set(3.4,.5,-3.9); scene.add(cooler);
+  const bottle = vbox(.32,.45,.32,new T.MeshLambertMaterial({color:0x6ab0f0, transparent:true, opacity:.7})); bottle.position.set(3.4,1.23,-3.9); scene.add(bottle);
+  const printer = vbox(.8,.5,.6,lam(0xd0d0d0)); printer.position.set(-3.3,.65,-3.9); scene.add(printer);
+  const prStand = vbox(.7,.4,.5,lam(0x60656c)); prStand.position.set(-3.3,.2,-3.9); scene.add(prStand);
+  [[3.5,2.6],[-3.5,2.4]].forEach(([x,z]) => { const pot = vbox(.4,.4,.4,lam(0x8a5a3a)); pot.position.set(x,.2,z); scene.add(pot);
+    for(let i=0;i<9;i++){ const l = vbox(.18,.18,.18,lam([0x3a8a3a,0x2a6a2a,0x4aa04a][i%3])); l.position.set(x+rand(-.2,.2),.55+rand(0,.6),z+rand(-.2,.2)); scene.add(l); } });
+
+  // ---- 围观同事 ----
+  const crowd = [];
+  const rc = () => ({name:'', skin:(Math.random()*5)|0, hair:BX.HAIRS[(Math.random()*6)|0], hairC:(Math.random()*4)|0, shirt:(Math.random()*6)|0, tie:['none','none','blue','red'][(Math.random()*4)|0], pants:(Math.random()*4)|0, glasses:BX.GLASSES[(Math.random()*3)|0], beard:'none', build:BX.BUILD[(Math.random()*3)|0], glove:0});
+  [[-1.9,-2.5,.4],[1.9,-2.6,-.4],[-.6,-3.6,.1],[.8,-3.7,-.1]].forEach(([x,z,r]) => {
+    const f = makeFighter(rc()); f.root.position.set(x,0,z); f.root.rotation.y = r; f.root.scale.setScalar(.92);
+    f.armL.glove.visible = f.armR.glove.visible = false; scene.add(f.root); crowd.push({f, ph:Math.random()*6, cheer:0}); f.root.visible = false; });
+
+  // ---- 两个主角 ----
+  let me = null, opp = null;
+  function rebuild(which){
+    if(which !== 'opp'){ if(me) scene.remove(me.root); me = makeFighter(save.me); const tA = me.armL; me.armL = me.armR; me.armR = tA; scene.add(me.root); }
+    if(which !== 'me'){ if(opp) scene.remove(opp.root); opp = makeFighter(save.opp); scene.add(opp.root); }
+    placeForMode();
+  }
+
+  // ---- 状态 ----
+  let mode = 'create', editing = 'me', timeScale = 1, fightT = 99, startT = 0, ended = false;
+  let stats = {punch:0, land:0, combo:0, best:0}, comboT = 0;
+  const ai = {timer:2, kind:'jab', aggr:1};
+  const keys = {};
+  function placeForMode(){
+    if(!me || !opp) return;
+    if(mode === 'create'){
+      me.root.position.set(-.8,0,.4); me.root.rotation.set(0,.25,0); opp.root.position.set(.8,0,.4); opp.root.rotation.set(0,-.25,0);
+      crowd.forEach(c => c.f.root.visible = false);
+    } else {
+      me.root.position.set(-.34,0,1.0); me.root.rotation.set(0,Math.PI,0); opp.root.position.set(.05,0,-.75); opp.root.rotation.set(0,0,0);
+      crowd.forEach(c => c.f.root.visible = true);
+    }
+    me.rig.rotation.set(0,0,0); opp.rig.rotation.set(0,0,0); me.rig.position.set(0,0,0); opp.rig.position.set(0,0,0);
+    fit(aspect);
+  }
+  let aspect = 1;
+  function fit(a){
+    aspect = a; const k = Math.max(1, .95/a);
+    if(mode === 'create'){ G.camPos.set(0, 1.35, 3.4*Math.min(1.9,.6+k*.45)); G.camLook.set(0,1.0,.4); }
+    else { const z = Math.min(1.7, .65 + k*.38); G.camPos.set(.55, 2.3 + (z-1)*.4, 1.2 + 1.95*z); G.camLook.set(.12, 1.35, -.75); }
+    baseCam.copy(G.camPos);
+  }
+  const baseCam = new T.Vector3();
+  G.fit = fit;
+
+  // ---- 捏角色界面 ----
+  const L = (zh, en) => lang === 'zh' ? zh : en;
+  const OPTS = [
+    ['skin', L('肤色','Skin'), 'color', BX.SKINS.map((c,i) => [i,c])],
+    ['hair', L('发型','Hair'), 'text', BX.HAIRS.map((h,i) => [h, L(['短发','长发','光头','马尾','卷发','地中海'][i], ['Short','Long','Bald','Pony','Curly','Balding'][i])])],
+    ['hairC', L('发色','Hair color'), 'color', BX.HAIRC.map((c,i) => [i,c])],
+    ['shirt', L('衬衫','Shirt'), 'color', BX.SHIRTS.map((c,i) => [i,c])],
+    ['tie', L('领带','Tie'), 'text', [['none',L('无','None')],['red',L('红','Red')],['blue',L('蓝','Blue')],['gold',L('金','Gold')]]],
+    ['pants', L('裤子','Pants'), 'color', BX.PANTS.map((c,i) => [i,c])],
+    ['glasses', L('眼镜','Glasses'), 'text', [['none',L('无','None')],['round',L('圆框','Round')],['sun',L('墨镜','Shades')]]],
+    ['beard', L('胡子','Beard'), 'text', [['none',L('无','None')],['stubble',L('胡渣','Stubble')],['mustache',L('八字胡','Mustache')]]],
+    ['build', L('身材','Build'), 'text', [['slim',L('瘦','Slim')],['normal',L('普通','Normal')],['fat',L('胖','Big')]]],
+    ['glove', L('拳套','Gloves'), 'color', BX.GLOVES.map((c,i) => [i,c])],
+  ];
+  function createUI(){
+    mode = 'create'; placeForMode(); hint(''); $('#fhud') && ($('#fhud').style.display = 'none');
+    const cfg = save[editing];
+    const tb = $('#tools'); tb.style.maxHeight = '48vh'; tb.style.overflowY = 'auto'; tb.style.alignItems = 'stretch';
+    let h = `<div class="bxtabs"><button class="pill ${editing==='me'?'sel':''}" data-e="me">🙋 ${L('我自己','Me')}</button><button class="pill ${editing==='opp'?'sel':''}" data-e="opp">😤 ${L('对手','Opponent')}</button></div>`;
+    if(editing === 'opp') h += `<div class="bxrow"><span>${L('快速选','Presets')}</span><div>${[['boss',L('老板','Boss')],['cowork',L('同事','Coworker')],['client',L('客户','Client')]].map(([k,n]) => `<button class="pill" data-p="${k}">${n}</button>`).join('')}</div></div>`;
+    h += `<div class="bxrow"><span>${L('名字','Name')}</span><div><input id="bxname" maxlength="8" value="${cfg.name.replace(/"/g,'')}" style="flex:1;padding:8px;border-radius:8px;border:0;font-size:15px;min-width:0"></div></div>`;
+    for(const [k, label, type, list] of OPTS){
+      h += `<div class="bxrow"><span>${label}</span><div>` + list.map(([v, x]) => type === 'color'
+        ? `<button class="sw ${cfg[k]===v?'sel':''}" data-k="${k}" data-v="${v}" style="background:${BX_hex(x)}"></button>`
+        : `<button class="pill ${cfg[k]===v?'sel':''}" data-k="${k}" data-v="${v}">${x}</button>`).join('') + `</div></div>`;
+    }
+    h += `<button class="btn gold" id="bxgo" style="width:100%;margin-top:6px;font-size:18px">🥊 ${L('开打！','FIGHT!')} ${PRICES[currency]}</button>`;
+    tools(h);
+    tb.querySelectorAll('[data-e]').forEach(b => b.onclick = () => { editing = b.dataset.e; createUI(); });
+    tb.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { save.opp = {...BX_PRESETS[b.dataset.p], name: lang==='zh' ? BX_PRESETS[b.dataset.p].name : {boss:'Boss',cowork:'Coworker',client:'Client'}[b.dataset.p]}; bxSave(save); rebuild('opp'); createUI(); });
+    tb.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { const k = b.dataset.k, v = b.dataset.v; save[editing][k] = /^\d+$/.test(v) ? +v : v; bxSave(save); rebuild(editing); createUI(); });
+    $('#bxname').oninput = e => { save[editing].name = e.target.value.trim() || (editing === 'me' ? L('我','Me') : L('对手','Rival')); bxSave(save); };
+    $('#bxgo').onclick = () => pay(L('办公室拳击一场','One office boxing match'), ok => { if(ok) startFight(); });
+  }
+
+  // ---- 对打界面 ----
+  function hud(){
+    let el = $('#fhud');
+    if(!el){ el = document.createElement('div'); el.id = 'fhud'; stage.appendChild(el); }
+    el.style.display = 'flex';
+    el.innerHTML = `<div class="fs"><b>${save.me.name}</b><div class="hp"><i id="hpMe"></i></div></div><div class="ft2" id="ftime">99</div><div class="fs r"><b>${save.opp.name}</b><div class="hp"><i id="hpOpp"></i></div></div>`;
+    let fl = $('#hurtFlash'); if(!fl){ fl = document.createElement('div'); fl.id = 'hurtFlash'; stage.appendChild(fl); }
+    let wn = $('#warnMark'); if(!wn){ wn = document.createElement('div'); wn.id = 'warnMark'; wn.textContent = '❗'; stage.appendChild(wn); }
+  }
+  function updHud(){ const a = $('#hpMe'), b = $('#hpOpp'); if(a) a.style.width = Math.max(0,me.hp) + '%'; if(b) b.style.width = Math.max(0,opp.hp/(opp.maxHp||100)*100) + '%'; const tm = $('#ftime'); if(tm) tm.textContent = Math.ceil(Math.max(0,fightT)); }
+  function fightUI(){
+    const tb = $('#tools'); tb.style.maxHeight = ''; tb.style.overflowY = ''; tb.style.alignItems = 'center';
+    tools(`<button class="fb" data-a="dodgeL">⬅️<small>${L('闪','Dodge')}</small></button><button class="fb red" data-a="jab">👊<small>${L('左拳','Jab')}</small></button><button class="fb blue" data-a="block">🛡️<small>${L('挡','Block')}</small></button><button class="fb red" data-a="cross">💥<small>${L('右重拳','Cross')}</small></button><button class="fb" data-a="dodgeR">➡️<small>${L('闪','Dodge')}</small></button>`);
+    tb.querySelectorAll('.fb').forEach(b => {
+      const a = b.dataset.a;
+      b.onpointerdown = e => { e.preventDefault(); ac(); if(a === 'block') setBlock(true); else playerAct(a); b.classList.add('on'); };
+      const upf = () => { if(a === 'block') setBlock(false); b.classList.remove('on'); };
+      b.onpointerup = upf; b.onpointerleave = upf; b.onpointercancel = upf;
+    });
+  }
+  function startFight(){
+    mode = 'fight'; ended = false; placeForMode();
+    me.hp = 100; opp.hp = 100; opp.maxHp = 140; opp.hp = 140; me.act = opp.act = 'idle'; me.setFace('normal'); opp.setFace('normal');
+    fightT = 99; stats = {punch:0, land:0, combo:0, best:0}; ai.timer = 2.2; ai.aggr = 1; timeScale = 1;
+    hud(); updHud(); fightUI(); hint(L('👆 点屏幕左边 = 左拳，右边 = 右重拳','👆 Tap left = jab, right = cross'));
+    startT = 2.4; bigText('3', 0); setTimeout(() => bigText('2'), 700); setTimeout(() => bigText('1'), 1400); setTimeout(() => { bigText(L('开打！','FIGHT!'), 0, '#ffc94d'); bxSfx.bell(); }, 2100);
+    setTimeout(() => oppSay(TAUNT), 2600);
+  }
+  function bigText(txt, _, color='#fff'){ floatText(new T.Vector3(0,1.9,.3), txt, color, 56); }
+
+  // ---- 对手讲嘢 ----
+  const TAUNT = [['今晚全组加班！','Whole team does overtime tonight!'],['你的报告呢？','Where is your report?'],['这个月奖金没了！','No bonus this month!'],['KPI 没达标！','You missed your KPI!'],['扣你工资！','I\'m docking your pay!']];
+  const OUCH = [['哎哟！','Ouch!'],['HR！HR 救命！','HR! HR, help!'],['我要投诉你！','I\'m filing a complaint!'],['你……你被炒了……哎哟！','You… you\'re fired… ouch!'],['别打脸！','Not the face!']];
+  let talkUntil = 0, bubbleOn = false;
+  function oppSay(list){ const l = list[(Math.random()*list.length)|0]; const b = $('#bubble'); b.innerHTML = l[0] + (lang === 'en' ? `<small>${l[1]}</small>` : ''); b.style.display = 'block'; bubbleOn = true; talkUntil = performance.now() + 2000; }
+
+  // ---- 动作 ----
+  const DUR = {jab:.26, cross:.42, dodgeL:.42, dodgeR:.42, hit:.35, windup:.5};
+  function playerAct(a){
+    if(mode !== 'fight' || ended || startT > 0) return;
+    if(me.act !== 'idle' && me.act !== 'block') return;
+    me.act = a; me.at = 0; me.dur = DUR[a]; me.hitDone = false;
+    if(a === 'jab' || a === 'cross'){ stats.punch++; bxSfx.whoosh();
+      if(opp.act === 'idle' && Math.random() < .28 + ai.aggr*.1){ opp.act = 'block'; opp.at = 0; opp.dur = .55; } } // 对手有时会挡
+    else bxSfx.whoosh();
+  }
+  function setBlock(on){ if(mode !== 'fight' || ended) return; if(on){ if(me.act === 'idle'){ me.act = 'block'; me.at = 0; me.dur = 99; } } else if(me.act === 'block'){ me.act = 'idle'; } }
+  const isDodging = f => (f.act === 'dodgeL' || f.act === 'dodgeR') && f.at < f.dur*.85;
+  const OFFICE_HIT = [['威严 -10','Authority -10'],['面子 -20','Face -20'],['发量 -3','Hair -3'],['年终奖 -1000','Bonus -1000'],['气焰 -15','Ego -15']];
+  const OFFICE_HURT = [['加班 +1h','Overtime +1h'],['工资 -100','Salary -100'],['精神 -10','Sanity -10'],['周末 -1','Weekend -1']];
+  function resolve(att, def, kind){
+    const isMe = att === me;
+    const headW = new T.Vector3(); def.headG.getWorldPosition(headW);
+    if(isDodging(def)){ floatText(headW.clone().add(new T.Vector3(0,.35,0)), L('闪开！','Dodged!'), '#7be0ff', 26); bxSfx.whoosh(); if(isMe) stats.combo = 0; return; }
+    if(def.act === 'block'){
+      const dmg = kind === 'cross' ? 3 : 1; def.hp -= dmg; bxSfx.block();
+      floatText(headW.clone().add(new T.Vector3(0,.35,0)), L('格挡','Blocked'), '#cfd8ff', 22);
+      for(let i=0;i<6;i++) cubes.spawn({pos:headW.clone().add(new T.Vector3(0,-.2,isMe?.3:-.3)), vel:new T.Vector3(rand(-1.5,1.5),rand(.5,2),rand(-1,1)), g:-6, life:.4, size:.04, color:0xffffff, glow:true, floor:0});
+      if(isMe) stats.combo = 0; updHud(); checkKO(); return;
+    }
+    let dmg = kind === 'cross' ? 11 + (Math.random()*5|0) : 6 + (Math.random()*4|0);
+    let crit = false;
+    if(isMe){ stats.land++; stats.combo++; comboT = 1.1; stats.best = Math.max(stats.best, stats.combo); if(stats.combo >= 5 || Math.random() < .08){ crit = true; dmg = Math.round(dmg*1.6); } }
+    else dmg = Math.round(dmg * (.8 + ai.aggr*.15));
+    if(def === opp){ opp.gloveM.emissive.set(0x000000); $('#warnMark').style.display = 'none'; }
+    def.hp -= dmg; def.act = 'hit'; def.at = 0; def.dur = DUR.hit; def.setFace('hurt');
+    bxSfx.hit(kind === 'cross' || crit ? 1 : 0); buzz(isMe ? 25 : 60); shakeAmt = isMe ? .04 + (crit?.04:0) : .09;
+    floatText(headW.clone().add(new T.Vector3(rand(-.15,.15),.3,0)), (crit ? '💥' : '') + '-' + dmg, crit ? '#ff3b3b' : (isMe ? '#ffc94d' : '#ff6b6b'), crit ? 34 : 26);
+    if(isMe && stats.combo >= 3) floatText(headW.clone().add(new T.Vector3(.5,.6,0)), `${stats.combo} ${L('连击！','COMBO!')}`, '#ff9d3b', 24);
+    if(isMe && Math.random() < .3){ const o = OFFICE_HIT[(Math.random()*OFFICE_HIT.length)|0]; floatText(headW.clone().add(new T.Vector3(-.45,.1,0)), L(o[0],o[1]), '#c58bff', 18); }
+    if(!isMe && Math.random() < .5){ const o = OFFICE_HURT[(Math.random()*OFFICE_HURT.length)|0]; floatText(new T.Vector3(-.5,1.5,1.4), L(o[0],o[1]), '#ff8b8b', 18); }
+    if(!isMe){ const fl = $('#hurtFlash'); if(fl){ fl.style.opacity = '.55'; setTimeout(() => fl.style.opacity = '0', 120); } }
+    if(isMe && Math.random() < .25) oppSay(OUCH);
+    for(let i=0;i<10;i++) cubes.spawn({pos:headW.clone(), vel:new T.Vector3(rand(-1.5,1.5),rand(.8,2.5),rand(-1,1)*(isMe?-1:1)), g:-7, life:rand(.4,.8), size:rand(.03,.06), color:[0x9fd8ff,0xffffff,0xffe066][i%3], floor:0});
+    if(crit || kind === 'cross') crowd.forEach(c => c.cheer = 1);
+    if(crit) bxSfx.ooh();
+    updHud(); checkKO();
+  }
+  function checkKO(){
+    if(ended) return;
+    const loser = opp.hp <= 0 ? opp : me.hp <= 0 ? me : null;
+    if(!loser) return;
+    endFight(loser === opp ? 'win' : 'lose', true);
+  }
+  function endFight(res, ko){
+    ended = true; const loser = res === 'win' ? opp : me, winner = res === 'win' ? me : opp;
+    if(ko){ loser.act = 'ko'; loser.at = 0; loser.setFace('ko'); timeScale = .3; setTimeout(() => timeScale = 1, 900); bxSfx.thud(); setTimeout(() => bxSfx.ding(), 300); setTimeout(() => bxSfx.ding(), 700); setTimeout(() => bxSfx.ding(), 1100); bxSfx.cheer(); }
+    winner.act = 'win'; winner.at = 0; winner.setFace('happy'); if(!ko) loser.setFace('hurt');
+    crowd.forEach(c => c.cheer = 3);
+    $('#warnMark').style.display = 'none'; opp.gloveM.emissive.set(0x000000); hint(''); tools('');
+    floatText(new T.Vector3(0,2,0), ko ? 'K.O.!' : L('时间到！','TIME!'), '#ff3b3b', 64);
+    if(res === 'win'){ const b = $('#bubble'); b.innerHTML = L('我……我批你放长假……','I… I approve your long vacation…') + (lang==='en'?'':''); b.style.display = 'block'; bubbleOn = true; talkUntil = performance.now() + 2000; }
+    setTimeout(() => {
+      const acc = stats.punch ? Math.round(stats.land/stats.punch*100) : 0;
+      center(`<div style="font-size:56px">${res === 'win' ? '🏆' : '😵'}</div><h2>${res === 'win' ? L('你赢了！','You win!') : L('你输了……','You lost…')}</h2>
+        <div class="lbl" style="max-width:300px">${res === 'win' ? L(`「${save.opp.name}」被你打到${ko?' K.O.':'认输'}！`,`"${save.opp.name}" got ${ko?'knocked out':'beaten'}!`) : L(`你被「${save.opp.name}」${ko?' K.O. 了':'打赢了'}……`,`"${save.opp.name}" ${ko?'knocked you out':'won'}…`)}</div>
+        <div style="color:#ffc94d;font-size:14px">${L('出拳','Punches')} ${stats.punch} · ${L('命中','Landed')} ${stats.land} (${acc}%) · ${L('最高连击','Best combo')} ${stats.best}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="btn gold" id="bxagain">🥊 ${L('再打一场','Rematch')} ${PRICES[currency]}</button><button class="btn ghost" id="bxedit">✏️ ${L('改角色','Edit fighters')}</button></div>`);
+      $('#bxagain').onclick = () => pay(L('办公室拳击一场','One office boxing match'), ok => { if(ok){ center(''); rebuild(); startFight(); } });
+      $('#bxedit').onclick = () => { center(''); rebuild(); createUI(); };
+    }, 2200);
+  }
+
+  // ---- 姿势 ----
+  const bell = k => Math.sin(Math.min(1,Math.max(0,k))*Math.PI);
+  function pose(f, dt, t){
+    const k = f.dur ? f.at/f.dur : 0;
+    let rL = {x:-1.72, z:.38, pz:.04}, rR = {x:-1.72, z:.38, pz:.04}, yaw = 0, lean = .08, side = 0, drop = 0, headX = .05, bob = Math.sin(t*5 + (f===me?0:1.5))*.02;
+    if(mode === 'create'){ rL = {x:-.15, z:.12, pz:0}; rR = {x:-.15, z:.12, pz:0}; lean = 0; bob = Math.sin(t*2)*.01; headX = 0; }
+    switch(f.act){
+      case 'jab': { const e = k < .4 ? k/.4 : 1-(k-.4)/.6; rL = {x:-1.72+.2*e, z:.38-.34*e, pz:.04+.3*e}; yaw = .18*e; break; }
+      case 'cross': { const e = k < .45 ? Math.pow(k/.45,1.5) : 1-(k-.45)/.55; rR = {x:-1.72+.2*e, z:.38-.34*e, pz:.04+.36*e}; yaw = -.38*e; lean = .08+.12*e; break; }
+      case 'windup': { const e = Math.min(1,k*1.4); if(ai.kind === 'cross'){ rR = {x:-1.85, z:.2, pz:-.15*e}; yaw = .32*e; } else { rL = {x:-1.85, z:.2, pz:-.12*e}; yaw = -.2*e; } headX = .2; break; }
+      case 'block': rL = {x:-2.6, z:.75, pz:.05}; rR = {x:-2.6, z:.75, pz:.05}; headX = .25; lean = .15; break;
+      case 'hit': { const e = 1-k; lean = -.28*e; headX = -.4*e; rL.x += .4*e; rR.x += .4*e; break; }
+      case 'dodgeL': case 'dodgeR': { const e = bell(k), s = f.act === 'dodgeL' ? 1 : -1; side = s*.55*e; drop = .12*e; break; }
+      case 'win': { rL = {x:-3.0, z:.3, pz:0}; rR = {x:-3.0, z:.3, pz:0}; lean = -.05; bob = Math.abs(Math.sin(t*6))*.12; headX = -.15; break; }
+    }
+    // 角色本地 x：玩家转咗身，所以闪避方向要反转
+    const sx = 1; if(f === me) yaw = -yaw;
+    if(f.act === 'ko'){
+      const e = Math.min(1, f.at/.7), ee = 1-Math.pow(1-e,3);
+      f.rig.rotation.x = -Math.PI/2*ee; f.rig.position.y = .12*ee; f.rig.position.z = -.3*ee;
+      [f.armL, f.armR].forEach(a => { a.p.rotation.x += (-.3 - a.p.rotation.x)*Math.min(1,dt*6); });
+      if(e >= 1 && Math.random() < .5){ const hw = new T.Vector3(); f.headG.getWorldPosition(hw); const ang = t*5; cubes.spawn({pos:hw.add(new T.Vector3(Math.cos(ang)*.3,.25,Math.sin(ang)*.3)), vel:new T.Vector3(0,.2,0), g:0, life:.35, size:.05, color:0xffe066, glow:true}); }
+      return;
+    }
+    const sp = Math.min(1, dt*22);
+    const ap = (a, r) => { a.p.rotation.x += (r.x - a.p.rotation.x)*sp; a.p.rotation.z += (-a.side*r.z - a.p.rotation.z)*sp; a.p.position.z += (a.base.z + r.pz - a.p.position.z)*sp; };
+    ap(f.armL, rL); ap(f.armR, rR);
+    f.rig.rotation.y += (yaw - f.rig.rotation.y)*sp;
+    f.rig.rotation.x += (lean - f.rig.rotation.x)*sp;
+    f.rig.position.x += (side*sx - f.rig.position.x)*sp;
+    f.rig.position.y = bob - drop;
+    f.headG.rotation.x += (headX - f.headG.rotation.x)*sp;
+  }
+
+  function step(f, dt){
+    if(f.act === 'idle' || f.act === 'ko' || f.act === 'win') { f.at += dt; return; }
+    f.at += dt;
+    const other = f === me ? opp : me;
+    if((f.act === 'jab' || f.act === 'cross') && !f.hitDone && f.at >= f.dur*(f.act === 'jab' ? .4 : .45)){ f.hitDone = true; if(!ended) resolve(f, other, f.act); }
+    if(f.at >= f.dur){
+      if(f.act === 'windup'){ f.act = ai.kind; f.at = 0; f.dur = DUR[ai.kind]; f.hitDone = false; bxSfx.whoosh(); f.gloveM.emissive.set(0x000000); $('#warnMark').style.display = 'none'; return; }
+      if(f.act === 'hit'){ f.setFace(f.hp < 35 ? 'hurt' : (f === opp ? 'angry' : 'normal')); }
+      if(f.act !== 'block' || f !== me) f.act = 'idle';
+    }
+  }
+  function aiThink(dt){
+    if(ended || startT > 0) return;
+    ai.aggr = 1 + (140 - opp.hp)/80;
+    if(opp.act !== 'idle') return;
+    ai.timer -= dt;
+    if(ai.timer <= 0){
+      ai.kind = Math.random() < .55 ? 'jab' : 'cross';
+      opp.act = 'windup'; opp.at = 0; opp.dur = Math.max(.32, .62 - ai.aggr*.08); opp.setFace('angry');
+      opp.gloveM.emissive.set(0x661010); $('#warnMark').style.display = 'block';
+      ai.timer = rand(.6, 1.6) / ai.aggr;
+      if(Math.random() < .15) oppSay(TAUNT);
+    }
+  }
+
+  // ---- 输入 ----
+  G.down = p => { if(mode !== 'fight') return; playerAct(p.x < 0 ? 'jab' : 'cross'); };
+  const kd = e => { if(mode !== 'fight' || e.repeat) return; const k = e.key.toLowerCase();
+    if(k === 'j' || k === 'arrowup') playerAct('jab'); else if(k === 'k') playerAct('cross'); else if(k === 'a' || k === 'arrowleft') playerAct('dodgeL'); else if(k === 'd' || k === 'arrowright') playerAct('dodgeR'); else if(k === ' ' || k === 'l' || k === 'arrowdown'){ e.preventDefault(); setBlock(true); } };
+  const ku = e => { const k = e.key.toLowerCase(); if(k === ' ' || k === 'l' || k === 'arrowdown') setBlock(false); };
+  window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
+
+  const cubes = Cubes();
+  let keyT = 1, phoneT = 12;
+  G.update = rdt => {
+    const dt = rdt*timeScale, t = performance.now()/1000;
+    if(mode === 'create'){
+      const ed = editing === 'me' ? me : opp, other = editing === 'me' ? opp : me;
+      ed.root.rotation.y += rdt*.6; other.root.rotation.y += ((other === me ? .25 : -.25) - other.root.rotation.y)*Math.min(1,rdt*4);
+      ed.root.position.z += (.75 - ed.root.position.z)*Math.min(1,rdt*5); other.root.position.z += (.2 - other.root.position.z)*Math.min(1,rdt*5);
+    }
+    if(mode === 'fight'){
+      if(startT > 0) startT -= rdt;
+      if(!ended && startT <= 0){ fightT -= dt; if(fightT <= 0){ fightT = 0; endFight(me.hp >= opp.hp ? 'win' : 'lose', false); } }
+      comboT -= dt; if(comboT <= 0) stats.combo = 0;
+      aiThink(dt); step(me, dt); step(opp, dt); updHud();
+      // 镜头跟住自己（闪避时跟少少）
+      G.camPos.x = baseCam.x + me.rig.position.x*-.5; G.camPos.y = baseCam.y; G.camPos.z = baseCam.z;
+      // 警告标志
+      const wn = $('#warnMark'); if(wn && wn.style.display === 'block'){ const hw = new T.Vector3(); opp.headG.getWorldPosition(hw); hw.y += .45; const s = toScreen(hw); wn.style.left = s.x + 'px'; wn.style.top = s.y + 'px'; }
+    }
+    if(me && opp){ pose(me, dt, t); pose(opp, dt, t); }
+    crowd.forEach(c => { c.cheer = Math.max(0, c.cheer - rdt); const j = c.cheer > 0 ? Math.abs(Math.sin(t*9 + c.ph))*.15 : Math.sin(t*2 + c.ph)*.01; c.f.rig.position.y = j;
+      const up = c.cheer > 0 ? -2.9 : -.1; c.f.armL.p.rotation.x += (up - c.f.armL.p.rotation.x)*Math.min(1,rdt*8); c.f.armR.p.rotation.x += (up - c.f.armR.p.rotation.x)*Math.min(1,rdt*8); });
+    if(bubbleOn && opp){ const hw = new T.Vector3(); opp.headG.getWorldPosition(hw); hw.y += .5; const s = toScreen(hw); const b = $('#bubble');
+      b.style.left = Math.max(110, Math.min(stage.clientWidth-110, s.x)) + 'px'; b.style.top = Math.max(b.offsetHeight+(mode==='fight'?64:6), s.y) + 'px';
+      if(performance.now() > talkUntil){ b.style.display = 'none'; bubbleOn = false; } }
+    keyT -= rdt; if(keyT <= 0){ bxSfx.key(); keyT = Math.random() < .3 ? rand(.6,2) : rand(.06,.16); }
+    phoneT -= rdt; if(phoneT <= 0){ bxSfx.phone(); phoneT = rand(15,30); }
+    cubes.update(dt);
+  };
+  G.stop = () => { cubes.clear(); window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku);
+    ['#fhud','#hurtFlash','#warnMark'].forEach(s => { const e = $(s); if(e) e.remove(); });
+    const tb = $('#tools'); tb.style.maxHeight = ''; tb.style.overflowY = ''; tb.style.alignItems = ''; };
+  G.camPos.copy(new T.Vector3(0,1.35,4));
+  rebuild(); createUI();
   return G;
 }
 

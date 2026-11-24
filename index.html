@@ -333,15 +333,145 @@ function stretch(mesh, a, b){ // 让一根单位长度圆柱连接 a → b
 /* =========================================================
    游戏一：抽根烟（方块风 · 落魄打工仔 · POV）
    ========================================================= */
-function rainLoop(){
-  const a = ac(); if(!a) return () => {};
-  const len = a.sampleRate*2, buf = a.createBuffer(1,len,a.sampleRate), d = buf.getChannelData(0);
-  for(let i=0;i<len;i++) d[i] = Math.random()*2-1;
-  const src = a.createBufferSource(); src.buffer = buf; src.loop = true;
-  const f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2500; f.Q.value = .3;
-  const g = a.createGain(); g.gain.value = .05;
-  src.connect(f).connect(g).connect(a.destination); src.start();
-  return () => { try{ src.stop(); }catch(e){} };
+// 抽烟游戏专用声音：环境 + 打火机 + 吸 + 呼 + 咳 + 叹气 + 车经过（全部即时合成）
+function SmokeAudio(){
+  const a = ac();
+  const nop = () => {};
+  if(!a) return {stop:nop, lighter:nop, inhaleStart:nop, inhaleStop:nop, crackle:nop, exhale:nop, cough:nop, sigh:nop, carPass:nop, whoosh:nop, tick:nop, ash:nop};
+  const master = a.createGain(); master.gain.value = 1; master.connect(a.destination);
+  const now = () => a.currentTime;
+  const white = (() => { const len = a.sampleRate*2, b = a.createBuffer(1,len,a.sampleRate), d = b.getChannelData(0); for(let i=0;i<len;i++) d[i] = Math.random()*2-1; return b; })();
+  const brown = (() => { const len = a.sampleRate*3, b = a.createBuffer(1,len,a.sampleRate), d = b.getChannelData(0); let l = 0; for(let i=0;i<len;i++){ l = (l + .02*(Math.random()*2-1))/1.02; d[i] = l*3.5; } return b; })();
+  const loops = [];
+  function src(buf, loop){ const s = a.createBufferSource(); s.buffer = buf; s.loop = !!loop; if(loop) s.loopStart = Math.random(); return s; }
+  function filt(type, f, q=1){ const x = a.createBiquadFilter(); x.type = type; x.frequency.value = f; x.Q.value = q; return x; }
+  function gain(v){ const g = a.createGain(); g.gain.value = v; return g; }
+  function pan(v){ if(a.createStereoPanner){ const p = a.createStereoPanner(); p.pan.value = v; return p; } return gain(1); }
+  function chain(...n){ for(let i=0;i<n.length-1;i++) n[i].connect(n[i+1]); return n[n.length-1]; }
+  // 一次性噪音（有包络）
+  function burst(dur, {type='bandpass', f=1000, q=1, vol=.3, att=.005, f2=null, p=0, buf=white, at=0}={}){
+    const t0 = now()+at, s = src(buf), fl = filt(type, f, q), g = gain(0), pn = pan(p);
+    if(f2) fl.frequency.exponentialRampToValueAtTime(f2, t0+dur);
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0+att); g.gain.exponentialRampToValueAtTime(.0001, t0+dur);
+    chain(s, fl, g, pn, master); s.start(t0, Math.random()); s.stop(t0+dur+.05);
+  }
+  function osc(type, f1, f2, dur, vol, {at=0, p=0, lp=0}={}){
+    const t0 = now()+at, o = a.createOscillator(), g = gain(0), pn = pan(p); o.type = type;
+    o.frequency.setValueAtTime(f1, t0); o.frequency.exponentialRampToValueAtTime(Math.max(1,f2), t0+dur);
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0+.01); g.gain.exponentialRampToValueAtTime(.0001, t0+dur);
+    if(lp){ chain(o, filt('lowpass', lp, .7), g, pn, master); } else chain(o, g, pn, master);
+    o.start(t0); o.stop(t0+dur+.05);
+  }
+
+  // ---- 环境声（循环）----
+  // 雨：沙沙声 + 打落地面嘅低频
+  { const s = src(white, true); chain(s, filt('bandpass', 2600, .35), gain(.055), master); s.start(); loops.push(s);
+    const s2 = src(brown, true); chain(s2, filt('lowpass', 700, .5), gain(.06), master); s2.start(); loops.push(s2); }
+  // 城市远处车流（低沉、慢慢起伏）
+  { const s = src(brown, true), g = gain(.1), lfo = a.createOscillator(), lg = gain(.05);
+    lfo.frequency.value = .07; lfo.connect(lg); lg.connect(g.gain);
+    chain(s, filt('lowpass', 260, .6), g, master); s.start(); lfo.start(); loops.push(s, lfo); }
+  // 冷气机嗡嗡声
+  { const o = a.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 58;
+    const o2 = a.createOscillator(); o2.type = 'sine'; o2.frequency.value = 117;
+    const g = gain(.012); chain(o, filt('lowpass', 180, .8), g, pan(.4), master); o2.connect(gain(.008)).connect(master);
+    const fanN = src(white, true); chain(fanN, filt('bandpass', 420, 2), gain(.012), pan(.4), master);
+    o.start(); o2.start(); fanN.start(); loops.push(o, o2, fanN); }
+
+  // ---- 随机环境事件 ----
+  const ev = { horn: rand(5,12), siren: rand(18,35), drip: .5, thunder: rand(25,50), dog: rand(30,60) };
+  function horn(){ const p = rand(-.8,.8), d = rand(.18,.45); osc('square', 410, 405, d, .02, {p, lp:1400}); osc('square', 520, 515, d, .015, {p, lp:1400});
+    if(Math.random() < .4){ osc('square', 410, 405, d*.7, .02, {p, lp:1400, at:d+.12}); osc('square', 520, 515, d*.7, .015, {p, lp:1400, at:d+.12}); } }
+  function siren(){ const t0 = now(), o = a.createOscillator(), g = gain(0), p = pan(rand(-.6,.6)); o.type = 'triangle';
+    for(let i=0;i<6;i++){ o.frequency.setValueAtTime(650, t0+i*.9); o.frequency.linearRampToValueAtTime(980, t0+i*.9+.45); o.frequency.linearRampToValueAtTime(650, t0+i*.9+.9); }
+    g.gain.setValueAtTime(0,t0); g.gain.linearRampToValueAtTime(.018, t0+1.5); g.gain.linearRampToValueAtTime(.018, t0+3.5); g.gain.linearRampToValueAtTime(0, t0+5.4);
+    chain(o, filt('lowpass', 1500, .7), g, p, master); o.start(t0); o.stop(t0+5.5); }
+  function drip(){ const f = rand(1400,3200); osc('sine', f, f*.55, rand(.04,.09), rand(.015,.04), {p:rand(-.9,.9)}); }
+  function thunder(){ burst(rand(2.5,4), {type:'lowpass', f:160, q:.5, vol:.35, att:rand(.3,.8), buf:brown, p:rand(-.5,.5)}); }
+  function dog(){ const p = rand(-.9,.9); for(let i=0;i<2+(Math.random()*2|0);i++){ osc('sawtooth', 520, 300, .12, .012, {p, lp:1200, at:i*.28}); burst(.1, {f:900, q:2, vol:.01, p, at:i*.28}); } }
+  function tick(dt){
+    for(const k in ev){ ev[k] -= dt; }
+    if(ev.horn <= 0){ horn(); ev.horn = rand(7,18); }
+    if(ev.siren <= 0){ siren(); ev.siren = rand(30,55); }
+    if(ev.drip <= 0){ drip(); ev.drip = rand(.2,1.1); }
+    if(ev.thunder <= 0){ thunder(); ev.thunder = rand(35,70); }
+    if(ev.dog <= 0){ dog(); ev.dog = rand(40,80); }
+  }
+
+  // ---- 车经过（由远到近再远，左右移动，有多普勒）----
+  function carPass(dir, dur){
+    const t0 = now(), mid = t0 + dur/2, end = t0 + dur;
+    const p = pan(0); if(p.pan){ p.pan.setValueAtTime(-dir, t0); p.pan.linearRampToValueAtTime(dir, end); }
+    const g = gain(0); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.05, mid-.6); g.gain.linearRampToValueAtTime(.22, mid); g.gain.linearRampToValueAtTime(.05, mid+.6); g.gain.linearRampToValueAtTime(0, end);
+    chain(g, p, master);
+    const eng = a.createOscillator(); eng.type = 'sawtooth';
+    eng.frequency.setValueAtTime(78, t0); eng.frequency.linearRampToValueAtTime(84, mid-.1); eng.frequency.linearRampToValueAtTime(64, mid+.3); eng.frequency.linearRampToValueAtTime(60, end);
+    chain(eng, filt('lowpass', 320, .8), gain(.35), g); eng.start(t0); eng.stop(end+.1);
+    const tire = src(white, true), tf = filt('bandpass', 1400, .5);   // 湿地轮胎声
+    tf.frequency.setValueAtTime(1800, t0); tf.frequency.linearRampToValueAtTime(1200, end);
+    chain(tire, tf, gain(.8), g); tire.start(t0); tire.stop(end+.1);
+  }
+
+  // ---- 打火机：转火石 → 火花 → 呼一声着火 → 火焰嘶嘶 → 放手 ----
+  function lighter(){
+    for(let i=0;i<3;i++) burst(.025, {type:'highpass', f:3500, q:.7, vol:.35, at:i*.045});
+    burst(.04, {type:'bandpass', f:6000, q:1.5, vol:.4, at:.14});
+    burst(.35, {type:'lowpass', f:500, q:.8, vol:.4, att:.04, f2:1600, at:.16});
+    burst(1.1, {type:'bandpass', f:1700, q:.6, vol:.12, att:.08, at:.2});
+    osc('square', 2300, 1800, .02, .04, {at:1.3});
+  }
+
+  // ---- 吸：气流声（持续）+ 烟纸燃烧噼啪 ----
+  let inh = null;
+  function inhaleStart(){
+    if(inh) return;
+    const t0 = now(), s = src(white, true), f = filt('bandpass', 1300, .9), g = gain(0);
+    f.frequency.setValueAtTime(1300, t0); f.frequency.linearRampToValueAtTime(2100, t0+2.5);
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.09, t0+.25);
+    chain(s, f, g, master); s.start(t0);
+    const sz = src(white, true), szf = filt('highpass', 6500, .5), szg = gain(0);   // 烟纸烧紧嘅嘶嘶
+    szg.gain.setValueAtTime(0, t0); szg.gain.linearRampToValueAtTime(.035, t0+.2);
+    chain(sz, szf, szg, master); sz.start(t0);
+    inh = {s, g, sz, szg};
+  }
+  function inhaleStop(){
+    if(!inh) return;
+    const t0 = now(), x = inh; inh = null;
+    x.g.gain.cancelScheduledValues(t0); x.g.gain.setValueAtTime(x.g.gain.value, t0); x.g.gain.linearRampToValueAtTime(0, t0+.12);
+    x.szg.gain.cancelScheduledValues(t0); x.szg.gain.setValueAtTime(x.szg.gain.value, t0); x.szg.gain.linearRampToValueAtTime(0, t0+.1);
+    x.s.stop(t0+.15); x.sz.stop(t0+.15);
+  }
+  function crackle(){ burst(.02, {type:'bandpass', f:rand(3500,7000), q:3, vol:rand(.12,.28)}); }
+
+  // ---- 呼：嘴唇「噗」一声 + 「呼～」气声（大口大声，细口细声）----
+  function exhale(k){
+    const dur = .8 + k*1.6, vol = .1 + k*.28;
+    osc('sine', 140, 60, .05, .12*(.5+k)); burst(.03, {type:'lowpass', f:900, vol:.1*(.5+k)});
+    const t0 = now()+.04, s = src(white), f = filt('bandpass', 1300, .55), lp = filt('lowpass', 2600, .5), g = gain(0);
+    f.frequency.setValueAtTime(1400, t0); f.frequency.exponentialRampToValueAtTime(650, t0+dur);
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0+.09); g.gain.linearRampToValueAtTime(vol*.7, t0+dur*.5); g.gain.exponentialRampToValueAtTime(.0001, t0+dur);
+    chain(s, f, lp, g, master); s.start(t0, Math.random()); s.stop(t0+dur+.05);
+  }
+  // ---- 咳 ----
+  function cough(){
+    for(let i=0;i<4;i++){ const at = i*.24 + (i>1?.15:0);
+      burst(.16, {type:'bandpass', f:rand(450,650), q:.9, vol:.55, att:.008, f2:300, at});
+      osc('sawtooth', 170, 110, .12, .06, {at, lp:700}); }
+  }
+  // ---- 叹气 ----
+  function sigh(){
+    burst(1.3, {type:'bandpass', f:1000, q:.6, vol:.14, att:.25, f2:450});
+    osc('sawtooth', 115, 85, 1.0, .025, {lp:420, at:.1});
+  }
+  // ---- 镜头飞入 ----
+  function whoosh(){ burst(.9, {type:'bandpass', f:250, q:.8, vol:.12, att:.4, f2:1800}); }
+  function ash(){ osc('sine', 2600, 2000, .015, .02); }
+
+  function stop(){
+    const t0 = now(); master.gain.setValueAtTime(master.gain.value, t0); master.gain.linearRampToValueAtTime(0, t0+.3);
+    inhaleStop(); setTimeout(() => { loops.forEach(s => { try{ s.stop(); }catch(e){} }); try{ master.disconnect(); }catch(e){} }, 400);
+  }
+  return {stop, lighter, inhaleStart, inhaleStop, crackle, exhale, cough, sigh, carPass, whoosh, tick, ash};
 }
 
 function SmokeGame(){
@@ -488,14 +618,14 @@ function SmokeGame(){
     const hl = new T.MeshBasicMaterial({color:0xfff2c0}), tl = new T.MeshBasicMaterial({color:0xff2020});
     [-.3,.3].forEach(z => { const h = vbox(.04,.12,.2,hl); h.position.set(1.0*dir,.5,z); g.add(h); const tt = vbox(.04,.12,.2,tl); tt.position.set(-1.0*dir,.5,z); g.add(tt); });
     const beam = new T.PointLight(0xfff2c0, 1.5, 6); beam.position.set(1.8*dir,.6,0); g.add(beam);
-    g.position.set(-16*dir, 0, dir > 0 ? 6 : 3.4); scene.add(g); car = {g, dir};
+    g.position.set(-16*dir, 0, dir > 0 ? 6 : 3.4); scene.add(g); car = {g, dir}; au.carPass(dir, 34/9);
   }
 
   // ---- 状态 ----
   let state = 'idle', st = 0, L = 1, ashLen = 0, holding = false, inhale = 0, puffs = 0, cigs = 0, emberI = 0;
   let exhaleLeft = 0, exhaleRate = 0, exhaleK = 1, crackT = 0, idleT = 0, sighT = 0, talkUntil = 0, bubbleOn = false;
   const tipW = new T.Vector3(), tmp = new T.Vector3(), headW = new T.Vector3();
-  const stopRain = rainLoop();
+  const au = SmokeAudio();
   function score(){ setScore(`${puffs}${t('puffs')} · ${cigs}${t('cigs')}`); }
   function speak(zh, en, ms){
     const b = $('#bubble'); b.innerHTML = zh + (lang === 'en' && en ? `<small>${en}</small>` : '');
@@ -516,11 +646,11 @@ function SmokeGame(){
   function startLighting(){
     state = 'lighting'; st = 0; L = 1; ashLen = 0; inhale = 0; emberI = 0; layoutCig();
     cigW.visible = true; cigWb.scale.z = 1; lighter.visible = true;
-    speak(...[['唉……又加班到这么晚。','Sigh… overtime again.'],['今天又被老板骂了……','Got yelled at by the boss again…'],['房租下个礼拜就要交了……','Rent is due next week…']][cigs%3]);
+    speak(...[['唉……又加班到这么晚。','Sigh… overtime again.'],['今天又被老板骂了……','Got yelled at by the boss again…'],['房租下个礼拜就要交了……','Rent is due next week…']][cigs%3]); au.sigh();
   }
   function startExhale(k, fromMouth){
     const n = Math.round(10 + k*36); exhaleLeft = n; exhaleRate = n/(.6 + k*.9); exhaleK = k; exhaleFromMouth = !!fromMouth;
-    sfx.exhale(.7 + k*1.2);
+    au.exhale(Math.min(1,k));
   }
   let exhaleFromMouth = false;
   function emitExhale(){
@@ -551,13 +681,13 @@ function SmokeGame(){
   function dropAsh(){
     ashM.getWorldPosition(tmp);
     cubes.spawn({pos:tmp.clone(), vel:new T.Vector3(rand(-.2,.2),-.2,rand(-.2,.2)), g:-6, life:2.5, size:.025, color:0x8e8a86, floor:.12});
-    ashLen = 0; layoutCig();
+    ashLen = 0; layoutCig(); au.ash();
   }
   function finishCig(){
-    state = 'done'; st = 0; cigs++; score(); hint(''); holding = false; $('#lung').style.display = 'none';
+    state = 'done'; st = 0; cigs++; score(); hint(''); holding = false; au.inhaleStop(); $('#lung').style.display = 'none';
     setTimeout(() => {
       pov.visible = false; man.visible = true; view = 'wide'; targets(); cigW.visible = false;
-      speak(...[['唉……好，回去继续做。','Sigh… back to work.'],['再抽一根就回去……','One more and I\'ll go back…'],['明天又是新的一天……吧。','Tomorrow is a new day… I guess.']][(cigs-1)%3], 3000);
+      speak(...[['唉……好，回去继续做。','Sigh… back to work.'],['再抽一根就回去……','One more and I\'ll go back…'],['明天又是新的一天……吧。','Tomorrow is a new day… I guess.']][(cigs-1)%3], 3000); au.sigh();
       setTimeout(() => offer(false), 1800);
     }, 700);
   }
@@ -582,10 +712,10 @@ function SmokeGame(){
       rx = -.2 + (-1.85+.2)*easeIO(k); rz = -.5*easeIO(k); lx = -.15 + (-1.75+.15)*easeIO(Math.min(1, st/.8)); lz = .55*easeIO(Math.min(1,st/.8));
       if(st > .75 && st < 1.6){ mouthP.getWorldPosition(tmp); tmp.z += .08; tmp.x -= .03;
         if(Math.random() < .7) cubes.spawn({pos:tmp.clone(), vel:new T.Vector3(rand(-.05,.05),rand(.3,.6),0), g:.3, life:rand(.15,.3), size:rand(.02,.04), color:[0xffc040,0xff7a1a][(Math.random()*2)|0], glow:true});
-        if(!sighT){ sighT = 1; sfx.lighter(); } emberI = Math.min(1.2, emberI + dt*1.5); }
+        if(!sighT){ sighT = 1; au.lighter(); } emberI = Math.min(1.2, emberI + dt*1.5); }
       if(st > 1.6){ lighter.visible = false; lx = -.15 + (-1.75+.15)*Math.max(0, 1-(st-1.6)*2); lz = .55*Math.max(0, 1-(st-1.6)*2); rx = -1.85 + Math.min(1,(st-1.6)*2)*.9; }
       if(st > 1.7 && sighT === 1){ sighT = 2; startExhale(.5, true); }
-      if(st > 2.6){ sighT = 0; state = 'flying'; view = 'pov'; targets(); $('#bubble').style.display = 'none'; bubbleOn = false; }
+      if(st > 2.6){ sighT = 0; au.whoosh(); state = 'flying'; view = 'pov'; targets(); $('#bubble').style.display = 'none'; bubbleOn = false; }
     } else if(state === 'offer' || state === 'idle' || state === 'done'){
       rx = -.2 + Math.sin(now/1500)*.03;
     } else { rx = -.95; rz = -.3; }
@@ -605,15 +735,16 @@ function SmokeGame(){
         const near = handPose.p.distanceTo(INHALE.p) < .08;
         if(near){
           inhale += dt; const burn = .11*dt; L -= burn; ashLen += burn*PL0*.8;
-          crackT -= dt; if(crackT <= 0){ sfx.crackle(); crackT = rand(.05,.14); }
+          crackT -= dt; if(crackT <= 0){ au.crackle(); crackT = rand(.04,.12); }
         }
         $('#lung').style.display = 'block'; $('#lung i').style.width = Math.min(100, inhale/2.6*100) + '%';
-        if(inhale > 3.2){ holding = false; puffs++; score(); startExhale(1.1); sfx.cough(); shakeAmt = .03; buzz([60,60,60]);
+        if(inhale > 3.2){ holding = false; puffs++; score(); startExhale(1.1); au.inhaleStop(); au.cough(); shakeAmt = .03; buzz([60,60,60]);
           floatText(tmp.set(0,1.5,1.5), t('cough'), '#fff', 28); inhale = 0; }
       } else {
         $('#lung').style.display = 'none';
         L -= .004*dt; ashLen += .0008*dt;
       }
+      const inhaling = holding && handPose.p.distanceTo(INHALE.p) < .08; inhaling ? au.inhaleStart() : au.inhaleStop();
       if(ashLen > .045 && !holding) dropAsh();
       if(L <= 0){ L = 0; finishCig(); }
       layoutCig();
@@ -646,9 +777,11 @@ function SmokeGame(){
     if(!car && carT <= 0) spawnCar();
     if(car){ car.g.position.x += car.dir*9*dt; if(Math.abs(car.g.position.x) > 17){ scene.remove(car.g); car = null; carT = rand(5,11); } }
     lampLight.intensity = 1.5 + (Math.random() < .01 ? -1 : 0);
+    if(state !== 'pov') au.inhaleStop();
+    au.tick(dt);
     updSmoke(dt); cubes.update(dt);
   };
-  G.stop = () => { stopRain(); cubes.clear(); smokeList.forEach(p => scene.remove(p.m)); smokeList.length = 0; scene.remove(camera); };
+  G.stop = () => { au.stop(); cubes.clear(); smokeList.forEach(p => scene.remove(p.m)); smokeList.length = 0; scene.remove(camera); };
   return G;
 }
 

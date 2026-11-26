@@ -72,8 +72,10 @@
   .bxrow .pill{padding:5px 10px;font-size:13px}
   .sw{width:28px;height:28px;border-radius:50%;border:2px solid #ffffff33;cursor:pointer;padding:0}
   .sw.sel{border-color:var(--gold);box-shadow:0 0 0 2px #ffc94d66}
-  .fb{flex:1;height:66px;border:0;border-radius:14px;background:#ffffff1f;color:#fff;font-size:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none}
+  .fb{flex:1;min-width:0;padding:0 2px;height:70px;border:0;border-radius:14px;background:#ffffff1f;color:#fff;font-size:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none}
   .fb small{font-size:11px;margin-top:2px}
+  .fb em{font-style:normal;font-size:9px;opacity:.85;line-height:1.1;white-space:nowrap}
+  .fb.orange{background:#e67e22cc}
   .fb.red{background:#d63031cc}.fb.blue{background:#2a6ad8cc}
   .fb.on{transform:scale(.93);filter:brightness(1.3)}
   #fhud{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:8px;padding:8px 10px;z-index:2;pointer-events:none;background:linear-gradient(#000a,#0000)}
@@ -1449,7 +1451,7 @@ function makeFighter(c){
   const sleeveT = pixTex(8,8,(g)=>noiseFill(g,0,0,8,8,shirtHex,.05));
   const pantsT = pixTex(8,8,(g)=>noiseFill(g,0,0,8,8,pantsHex,.08));
   const skinT = pixTex(8,8,(g)=>noiseFill(g,0,0,8,8,BX.SKINS[c.skin],.04));
-  [-1,1].forEach(s => { const l = vbox(.21,.76,.22,lam({map:pantsT})); l.position.set(s*W*.24,.48,0); rig.add(l); const sh = vbox(.22,.1,.3,lam(0x15110e)); sh.position.set(s*W*.24,.05,.04); rig.add(sh); });
+  const legs = [-1,1].map(s => { const p = new T.Group(); p.position.set(s*W*.24,.86,0); rig.add(p); const l = vbox(.21,.76,.22,lam({map:pantsT})); l.position.y = -.38; p.add(l); const sh = vbox(.22,.1,.3,lam(0x15110e)); sh.position.set(0,-.81,.04); p.add(sh); return p; });
   const torso = vbox(W,.66,D,lam({map:shirtT})); torso.position.y = 1.19; rig.add(torso);
   const belt = vbox(W*1.02,.05,D*1.02,lam(0x1a1410)); belt.position.y = .88; rig.add(belt);
   if(c.build === 'fat'){ const belly = vbox(W*.78,.32,.1,lam({map:shirtT})); belly.position.set(0,1.05,D/2+.04); rig.add(belly); }
@@ -1472,7 +1474,7 @@ function makeFighter(c){
   }
   const armL = mkArm(-1), armR = mkArm(1);
   const exprCache = {};
-  return {root, rig, headG, torso, armL, armR, cfg:c, gloveM,
+  return {root, rig, headG, torso, armL, armR, legs, cfg:c, gloveM,
     setFace(e){ if(this.face === e) return; this.face = e; faceMat.map = bxFaceTex(c, e); faceMat.needsUpdate = true; },
     act:'idle', at:0, dur:0, hp:100, face:'normal'};
 }
@@ -1603,7 +1605,7 @@ function BoxingGame(){
   function createUI(){
     mode = 'create'; placeForMode(); hint(''); $('#fhud') && ($('#fhud').style.display = 'none');
     const cfg = save[editing];
-    const tb = $('#tools'); tb.style.maxHeight = '48vh'; tb.style.overflowY = 'auto'; tb.style.alignItems = 'stretch';
+    const tb = $('#tools'); tb.style.gap = ''; tb.style.padding = ''; tb.style.maxHeight = '48vh'; tb.style.overflowY = 'auto'; tb.style.alignItems = 'stretch';
     let h = `<div class="bxtabs"><button class="pill ${editing==='me'?'sel':''}" data-e="me">🙋 ${L('我自己','Me')}</button><button class="pill ${editing==='opp'?'sel':''}" data-e="opp">😤 ${L('对手','Opponent')}</button></div>`;
     if(editing === 'opp') h += `<div class="bxrow"><span>${L('快速选','Presets')}</span><div>${[['boss',L('老板','Boss')],['cowork',L('同事','Coworker')],['client',L('客户','Client')]].map(([k,n]) => `<button class="pill" data-p="${k}">${n}</button>`).join('')}</div></div>`;
     h += `<div class="bxrow"><span>${L('名字','Name')}</span><div><input id="bxname" maxlength="8" value="${cfg.name.replace(/"/g,'')}" style="flex:1;padding:8px;border-radius:8px;border:0;font-size:15px;min-width:0"></div></div>`;
@@ -1632,8 +1634,8 @@ function BoxingGame(){
   }
   function updHud(){ const a = $('#hpMe'), b = $('#hpOpp'); if(a) a.style.width = Math.max(0,me.hp) + '%'; if(b) b.style.width = Math.max(0,opp.hp/(opp.maxHp||100)*100) + '%'; const tm = $('#ftime'); if(tm) tm.textContent = Math.ceil(Math.max(0,fightT)); }
   function fightUI(){
-    const tb = $('#tools'); tb.style.maxHeight = ''; tb.style.overflowY = ''; tb.style.alignItems = 'center';
-    tools(`<button class="fb" data-a="dodgeL">⬅️<small>${L('闪','Dodge')}</small></button><button class="fb red" data-a="jab">👊<small>${L('左拳','Jab')}</small></button><button class="fb blue" data-a="block">🛡️<small>${L('挡','Block')}</small></button><button class="fb red" data-a="cross">💥<small>${L('右重拳','Cross')}</small></button><button class="fb" data-a="dodgeR">➡️<small>${L('闪','Dodge')}</small></button>`);
+    const tb = $('#tools'); tb.style.maxHeight = ''; tb.style.overflowY = ''; tb.style.alignItems = 'center'; tb.style.gap = '5px'; tb.style.padding = '8px 6px';
+    tools(`<button class="fb" data-a="dodgeL">⬅️<small>${L('左闪','Dodge L')}</small><em>${L('（闪身步）','(Side Step)')}</em></button><button class="fb red" data-a="jab">👊<small>${L('左拳','Jab')}</small></button><button class="fb blue" data-a="block">🛡️<small>${L('挡','Block')}</small></button><button class="fb red" data-a="cross">💥<small>${L('右拳','Cross')}</small></button><button class="fb orange" data-a="kick">🦵<small>${L('踢','Kick')}</small><em>${L('（浪子踢球）','(Prodigal Kick)')}</em></button><button class="fb" data-a="dodgeR">➡️<small>${L('右闪','Dodge R')}</small><em>${L('（狗熊抖抖毛）','(Bear Shake)')}</em></button>`);
     tb.querySelectorAll('.fb').forEach(b => {
       const a = b.dataset.a;
       b.onpointerdown = e => { e.preventDefault(); ac(); if(a === 'block') setBlock(true); else playerAct(a); b.classList.add('on'); };
@@ -1645,7 +1647,7 @@ function BoxingGame(){
     mode = 'fight'; ended = false; placeForMode();
     me.hp = 100; opp.hp = 100; opp.maxHp = 140; opp.hp = 140; me.act = opp.act = 'idle'; me.setFace('normal'); opp.setFace('normal');
     fightT = 99; stats = {punch:0, land:0, combo:0, best:0}; ai.timer = 2.2; ai.aggr = 1; timeScale = 1;
-    hud(); updHud(); fightUI(); hint(L('👆 点屏幕左边 = 左拳，右边 = 右重拳','👆 Tap left = jab, right = cross'));
+    hud(); updHud(); fightUI(); hint(L('👆 点屏幕左边 = 左拳，右边 = 右拳 · 看对手动作就闪！','👆 Tap left = jab, right = cross · read their moves and dodge!'));
     startT = 2.4; bigText('3', 0); setTimeout(() => bigText('2'), 700); setTimeout(() => bigText('1'), 1400); setTimeout(() => { bigText(L('开打！','FIGHT!'), 0, '#ffc94d'); bxSfx.bell(); }, 2100);
     setTimeout(() => oppSay(TAUNT), 2600);
   }
@@ -1658,12 +1660,12 @@ function BoxingGame(){
   function oppSay(list){ const l = list[(Math.random()*list.length)|0]; const b = $('#bubble'); b.innerHTML = l[0] + (lang === 'en' ? `<small>${l[1]}</small>` : ''); b.style.display = 'block'; bubbleOn = true; talkUntil = performance.now() + 2000; }
 
   // ---- 动作 ----
-  const DUR = {jab:.26, cross:.42, dodgeL:.42, dodgeR:.42, hit:.35, windup:.5};
+  const DUR = {jab:.26, cross:.42, kick:.55, dodgeL:.42, dodgeR:.42, hit:.35, windup:.5};
   function playerAct(a){
     if(mode !== 'fight' || ended || startT > 0) return;
     if(me.act !== 'idle' && me.act !== 'block') return;
     me.act = a; me.at = 0; me.dur = DUR[a]; me.hitDone = false;
-    if(a === 'jab' || a === 'cross'){ stats.punch++; bxSfx.whoosh();
+    if(a === 'jab' || a === 'cross' || a === 'kick'){ stats.punch++; bxSfx.whoosh();
       if(opp.act === 'idle' && Math.random() < .28 + ai.aggr*.1){ opp.act = 'block'; opp.at = 0; opp.dur = .55; } } // 对手有时会挡
     else bxSfx.whoosh();
   }
@@ -1674,20 +1676,21 @@ function BoxingGame(){
   function resolve(att, def, kind){
     const isMe = att === me;
     const headW = new T.Vector3(); def.headG.getWorldPosition(headW);
-    if(isDodging(def)){ floatText(headW.clone().add(new T.Vector3(0,.35,0)), L('闪开！','Dodged!'), '#7be0ff', 26); bxSfx.whoosh(); if(isMe) stats.combo = 0; return; }
+    if(isDodging(def)){ floatText(headW.clone().add(new T.Vector3(0,.35,0)), def.act === 'dodgeL' ? L('闪身步！','Side Step!') : L('狗熊抖抖毛！','Bear Shake!'), '#7be0ff', 26); bxSfx.whoosh(); if(isMe) stats.combo = 0; return; }
     if(def.act === 'block'){
-      const dmg = kind === 'cross' ? 3 : 1; def.hp -= dmg; bxSfx.block();
+      const dmg = kind === 'kick' ? 5 : kind === 'cross' ? 3 : 1; def.hp -= dmg; bxSfx.block();
       floatText(headW.clone().add(new T.Vector3(0,.35,0)), L('格挡','Blocked'), '#cfd8ff', 22);
       for(let i=0;i<6;i++) cubes.spawn({pos:headW.clone().add(new T.Vector3(0,-.2,isMe?.3:-.3)), vel:new T.Vector3(rand(-1.5,1.5),rand(.5,2),rand(-1,1)), g:-6, life:.4, size:.04, color:0xffffff, glow:true, floor:0});
       if(isMe) stats.combo = 0; updHud(); checkKO(); return;
     }
-    let dmg = kind === 'cross' ? 11 + (Math.random()*5|0) : 6 + (Math.random()*4|0);
+    let dmg = kind === 'kick' ? 16 + (Math.random()*6|0) : kind === 'cross' ? 11 + (Math.random()*5|0) : 6 + (Math.random()*4|0);
+    if(kind === 'kick') floatText(headW.clone().add(new T.Vector3(0,.75,0)), isMe ? L('⚽ 浪子踢球！','⚽ Prodigal Kick!') : L('飞踢！','Flying kick!'), '#ff9d3b', 30);
     let crit = false;
     if(isMe){ stats.land++; stats.combo++; comboT = 1.1; stats.best = Math.max(stats.best, stats.combo); if(stats.combo >= 5 || Math.random() < .08){ crit = true; dmg = Math.round(dmg*1.6); } }
     else dmg = Math.round(dmg * (.8 + ai.aggr*.15));
     if(def === opp){ opp.gloveM.emissive.set(0x000000); $('#warnMark').style.display = 'none'; }
     def.hp -= dmg; def.act = 'hit'; def.at = 0; def.dur = DUR.hit; def.setFace('hurt');
-    bxSfx.hit(kind === 'cross' || crit ? 1 : 0); buzz(isMe ? 25 : 60); shakeAmt = isMe ? .04 + (crit?.04:0) : .09;
+    bxSfx.hit(kind !== 'jab' || crit ? 1 : 0); if(kind === 'kick') bxSfx.thud(); buzz(isMe ? 25 : 60); shakeAmt = isMe ? .04 + (crit?.04:0) : .09;
     floatText(headW.clone().add(new T.Vector3(rand(-.15,.15),.3,0)), (crit ? '💥' : '') + '-' + dmg, crit ? '#ff3b3b' : (isMe ? '#ffc94d' : '#ff6b6b'), crit ? 34 : 26);
     if(isMe && stats.combo >= 3) floatText(headW.clone().add(new T.Vector3(.5,.6,0)), `${stats.combo} ${L('连击！','COMBO!')}`, '#ff9d3b', 24);
     if(isMe && Math.random() < .3){ const o = OFFICE_HIT[(Math.random()*OFFICE_HIT.length)|0]; floatText(headW.clone().add(new T.Vector3(-.45,.1,0)), L(o[0],o[1]), '#c58bff', 18); }
@@ -1695,7 +1698,7 @@ function BoxingGame(){
     if(!isMe){ const fl = $('#hurtFlash'); if(fl){ fl.style.opacity = '.55'; setTimeout(() => fl.style.opacity = '0', 120); } }
     if(isMe && Math.random() < .25) oppSay(OUCH);
     for(let i=0;i<10;i++) cubes.spawn({pos:headW.clone(), vel:new T.Vector3(rand(-1.5,1.5),rand(.8,2.5),rand(-1,1)*(isMe?-1:1)), g:-7, life:rand(.4,.8), size:rand(.03,.06), color:[0x9fd8ff,0xffffff,0xffe066][i%3], floor:0});
-    if(crit || kind === 'cross') crowd.forEach(c => c.cheer = 1);
+    if(crit || kind !== 'jab') crowd.forEach(c => c.cheer = 1);
     if(crit) bxSfx.ooh();
     updHud(); checkKO();
   }
@@ -1728,15 +1731,20 @@ function BoxingGame(){
   const bell = k => Math.sin(Math.min(1,Math.max(0,k))*Math.PI);
   function pose(f, dt, t){
     const k = f.dur ? f.at/f.dur : 0;
-    let rL = {x:-1.72, z:.38, pz:.04}, rR = {x:-1.72, z:.38, pz:.04}, yaw = 0, lean = .08, side = 0, drop = 0, headX = .05, bob = Math.sin(t*5 + (f===me?0:1.5))*.02;
+    let rL = {x:-1.72, z:.38, pz:.04}, rR = {x:-1.72, z:.38, pz:.04}, yaw = 0, lean = .08, side = 0, drop = 0, headX = .05, roll = 0, legK = 0, bob = Math.sin(t*5 + (f===me?0:1.5))*.02;
     if(mode === 'create'){ rL = {x:-.15, z:.12, pz:0}; rR = {x:-.15, z:.12, pz:0}; lean = 0; bob = Math.sin(t*2)*.01; headX = 0; }
     switch(f.act){
       case 'jab': { const e = k < .4 ? k/.4 : 1-(k-.4)/.6; rL = {x:-1.72+.2*e, z:.38-.34*e, pz:.04+.3*e}; yaw = .18*e; break; }
       case 'cross': { const e = k < .45 ? Math.pow(k/.45,1.5) : 1-(k-.45)/.55; rR = {x:-1.72+.2*e, z:.38-.34*e, pz:.04+.36*e}; yaw = -.38*e; lean = .08+.12*e; break; }
-      case 'windup': { const e = Math.min(1,k*1.4); if(ai.kind === 'cross'){ rR = {x:-1.85, z:.2, pz:-.15*e}; yaw = .32*e; } else { rL = {x:-1.85, z:.2, pz:-.12*e}; yaw = -.2*e; } headX = .2; break; }
+      case 'windup': { const e = Math.min(1,k*1.25), ee = e*e*(3-2*e);
+        if(ai.kind === 'cross'){ rR = {x:-1.3, z:.05, pz:-.34*ee}; yaw = .6*ee; lean = .08-.18*ee; drop = .06*ee; }
+        else if(ai.kind === 'kick'){ legK = .45*ee; lean = .08-.22*ee; drop = .05*ee; rL = {x:-1.5, z:.5, pz:0}; rR = {x:-1.5, z:.5, pz:0}; }
+        else { rL = {x:-1.45, z:.12, pz:-.26*ee}; yaw = -.38*ee; lean = .08-.1*ee; drop = .03*ee; }
+        headX = .22; break; }
+      case 'kick': { const e = k < .5 ? 1-Math.pow(1-k/.5,2) : 1-(k-.5)/.5; legK = -1.55*e; lean = .08-.32*e; yaw = .12*e; rL = {x:-1.9, z:.55, pz:0}; rR = {x:-1.6, z:.2, pz:0}; break; }
       case 'block': rL = {x:-2.6, z:.75, pz:.05}; rR = {x:-2.6, z:.75, pz:.05}; headX = .25; lean = .15; break;
       case 'hit': { const e = 1-k; lean = -.28*e; headX = -.4*e; rL.x += .4*e; rR.x += .4*e; break; }
-      case 'dodgeL': case 'dodgeR': { const e = bell(k), s = f.act === 'dodgeL' ? 1 : -1; side = s*.55*e; drop = .12*e; break; }
+      case 'dodgeL': case 'dodgeR': { const e = bell(k), s = f.act === 'dodgeL' ? 1 : -1; side = s*.55*e; drop = .12*e; roll = f.act === 'dodgeL' ? s*.28*e : Math.sin(f.at*48)*.24*e; if(f.act === 'dodgeR'){ rL.x += Math.sin(f.at*48)*.4*e; rR.x -= Math.sin(f.at*48)*.4*e; } break; }
       case 'win': { rL = {x:-3.0, z:.3, pz:0}; rR = {x:-3.0, z:.3, pz:0}; lean = -.05; bob = Math.abs(Math.sin(t*6))*.12; headX = -.15; break; }
     }
     // 角色本地 x：玩家转咗身，所以闪避方向要反转
@@ -1755,6 +1763,8 @@ function BoxingGame(){
     f.rig.rotation.x += (lean - f.rig.rotation.x)*sp;
     f.rig.position.x += (side*sx - f.rig.position.x)*sp;
     f.rig.position.y = bob - drop;
+    f.rig.rotation.z = (f === me ? -roll : roll);
+    f.legs[0].rotation.x += (legK - f.legs[0].rotation.x)*sp; f.legs[1].rotation.x += (0 - f.legs[1].rotation.x)*sp;
     f.headG.rotation.x += (headX - f.headG.rotation.x)*sp;
   }
 
@@ -1762,7 +1772,7 @@ function BoxingGame(){
     if(f.act === 'idle' || f.act === 'ko' || f.act === 'win') { f.at += dt; return; }
     f.at += dt;
     const other = f === me ? opp : me;
-    if((f.act === 'jab' || f.act === 'cross') && !f.hitDone && f.at >= f.dur*(f.act === 'jab' ? .4 : .45)){ f.hitDone = true; if(!ended) resolve(f, other, f.act); }
+    if((f.act === 'jab' || f.act === 'cross' || f.act === 'kick') && !f.hitDone && f.at >= f.dur*({jab:.4, cross:.45, kick:.5}[f.act])){ f.hitDone = true; if(!ended) resolve(f, other, f.act); }
     if(f.at >= f.dur){
       if(f.act === 'windup'){ f.act = ai.kind; f.at = 0; f.dur = DUR[ai.kind]; f.hitDone = false; bxSfx.whoosh(); f.gloveM.emissive.set(0x000000); $('#warnMark').style.display = 'none'; return; }
       if(f.act === 'hit'){ f.setFace(f.hp < 35 ? 'hurt' : (f === opp ? 'angry' : 'normal')); }
@@ -1775,9 +1785,9 @@ function BoxingGame(){
     if(opp.act !== 'idle') return;
     ai.timer -= dt;
     if(ai.timer <= 0){
-      ai.kind = Math.random() < .55 ? 'jab' : 'cross';
+      const rk = Math.random(); ai.kind = rk < .5 ? 'jab' : rk < .85 ? 'cross' : 'kick';
       opp.act = 'windup'; opp.at = 0; opp.dur = Math.max(.32, .62 - ai.aggr*.08); opp.setFace('angry');
-      opp.gloveM.emissive.set(0x661010); $('#warnMark').style.display = 'block';
+      $('#warnMark').style.display = 'block'; if(ai.kind === 'kick') opp.dur += .1;
       ai.timer = rand(.6, 1.6) / ai.aggr;
       if(Math.random() < .15) oppSay(TAUNT);
     }
@@ -1786,7 +1796,7 @@ function BoxingGame(){
   // ---- 输入 ----
   G.down = p => { if(mode !== 'fight') return; playerAct(p.x < 0 ? 'jab' : 'cross'); };
   const kd = e => { if(mode !== 'fight' || e.repeat) return; const k = e.key.toLowerCase();
-    if(k === 'j' || k === 'arrowup') playerAct('jab'); else if(k === 'k') playerAct('cross'); else if(k === 'a' || k === 'arrowleft') playerAct('dodgeL'); else if(k === 'd' || k === 'arrowright') playerAct('dodgeR'); else if(k === ' ' || k === 'l' || k === 'arrowdown'){ e.preventDefault(); setBlock(true); } };
+    if(k === 'j' || k === 'arrowup') playerAct('jab'); else if(k === 'k') playerAct('cross'); else if(k === 's' || k === 'u') playerAct('kick'); else if(k === 'a' || k === 'arrowleft') playerAct('dodgeL'); else if(k === 'd' || k === 'arrowright') playerAct('dodgeR'); else if(k === ' ' || k === 'l' || k === 'arrowdown'){ e.preventDefault(); setBlock(true); } };
   const ku = e => { const k = e.key.toLowerCase(); if(k === ' ' || k === 'l' || k === 'arrowdown') setBlock(false); };
   window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
 
@@ -1821,7 +1831,7 @@ function BoxingGame(){
   };
   G.stop = () => { cubes.clear(); window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku);
     ['#fhud','#hurtFlash','#warnMark'].forEach(s => { const e = $(s); if(e) e.remove(); });
-    const tb = $('#tools'); tb.style.maxHeight = ''; tb.style.overflowY = ''; tb.style.alignItems = ''; };
+    const tb = $('#tools'); tb.style.maxHeight = ''; tb.style.overflowY = ''; tb.style.alignItems = ''; tb.style.gap = ''; tb.style.padding = ''; };
   G.camPos.copy(new T.Vector3(0,1.35,4));
   rebuild(); createUI();
   return G;

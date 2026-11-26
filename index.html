@@ -78,6 +78,8 @@
   .fb.orange{background:#e67e22cc}
   .fb.red{background:#d63031cc}.fb.blue{background:#2a6ad8cc}
   .fb.on{transform:scale(.93);filter:brightness(1.3)}
+  .frow{display:flex;gap:6px;width:100%}
+  .frow .fb{height:58px}
   #ctrl{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;justify-content:space-between;gap:6px;padding:10px 8px;z-index:3;pointer-events:none}
   #ctrl>*{pointer-events:auto}
   #joy{width:104px;height:104px;flex:none;border-radius:50%;background:radial-gradient(#ffffff22,#0007);border:2px solid #ffffff55;position:relative;touch-action:none}
@@ -1659,20 +1661,10 @@ function BoxingGame(){
   }
   function updHud(){ const a = $('#hpMe'), b = $('#hpOpp'); if(a) a.style.width = Math.max(0,me.hp) + '%'; if(b) b.style.width = Math.max(0,opp.hp/(opp.maxHp||100)*100) + '%'; const tm = $('#ftime'); if(tm) tm.textContent = Math.ceil(Math.max(0,fightT)); }
   function fightUI(){
-    const tb = $('#tools'); tb.style.maxHeight = ''; tb.style.overflowY = ''; tb.style.alignItems = ''; tb.style.gap = ''; tb.style.padding = '';
-    tools('');
-    let c = $('#ctrl'); if(!c){ c = document.createElement('div'); c.id = 'ctrl'; stage.appendChild(c); }
-    c.innerHTML = `<div id="joy"><div id="knob"></div></div>
-      <div class="dg"><button class="fb" data-a="dodgeL">⬅️<small>${L('左闪','Dodge L')}</small><em>${L('（闪身步）','(Side Step)')}</em></button><button class="fb" data-a="dodgeR">➡️<small>${L('右闪','Dodge R')}</small><em>${L('（闪身步）','(Side Step)')}</em></button></div>
-      <div class="ag"><button class="fb red" data-a="jab">👊<small>${L('左拳','Jab')}</small></button><button class="fb red" data-a="cross">💥<small>${L('右拳','Cross')}</small></button><button class="fb blue" data-a="block">🛡️<small>${L('挡','Block')}</small></button><button class="fb orange" data-a="kick">🦵<small>${L('踢','Kick')}</small><em>${L('（浪子踢球）','(Prodigal Kick)')}</em></button></div>`;
-    // 摇杆
-    const jb = $('#joy'), kn = $('#knob'); let jid = null;
-    const setJ = e => { const r = jb.getBoundingClientRect(), R = r.width/2; let x = e.clientX - (r.left+R), y = e.clientY - (r.top+R); const l = Math.hypot(x,y); if(l > R*.62){ x *= R*.62/l; y *= R*.62/l; }
-      kn.style.transform = `translate(${x}px,${y}px)`; joy.x = x/(R*.62); joy.y = -y/(R*.62); };
-    jb.onpointerdown = e => { e.preventDefault(); ac(); jid = e.pointerId; jb.setPointerCapture(jid); setJ(e); };
-    jb.onpointermove = e => { if(e.pointerId === jid) setJ(e); };
-    const jEnd = e => { if(e.pointerId !== jid) return; jid = null; joy.x = joy.y = 0; kn.style.transform = ''; };
-    jb.onpointerup = jEnd; jb.onpointercancel = jEnd;
+    const tb = $('#tools'); tb.style.maxHeight = ''; tb.style.overflowY = ''; tb.style.alignItems = 'stretch'; tb.style.gap = '6px'; tb.style.padding = '8px';
+    tools(`<div class="frow"><button class="fb" data-a="dodgeL">⬅️<small>${L('左闪','Dodge L')}</small><em>${L('（闪身步）','(Side Step)')}</em></button><button class="fb" data-a="dodgeR">➡️<small>${L('右闪','Dodge R')}</small><em>${L('（闪身步）','(Side Step)')}</em></button></div>
+      <div class="frow"><button class="fb red" data-a="jab">👊<small>${L('左拳','Jab')}</small></button><button class="fb red" data-a="cross">💥<small>${L('右拳','Cross')}</small></button><button class="fb blue" data-a="block">🛡️<small>${L('挡','Block')}</small></button><button class="fb orange" data-a="kick">🦵<small>${L('踢','Kick')}</small><em>${L('（浪子踢球）','(Prodigal Kick)')}</em></button></div>`);
+    const c = tb;
     c.querySelectorAll('.fb').forEach(b => {
       const a = b.dataset.a;
       b.onpointerdown = e => { e.preventDefault(); ac(); if(a === 'block') setBlock(true); else playerAct(a); b.classList.add('on'); };
@@ -1713,7 +1705,7 @@ function BoxingGame(){
   function resolve(att, def, kind){
     const isMe = att === me;
     const headW = new T.Vector3(); def.headG.getWorldPosition(headW);
-    if(dist() > (kind === 'kick' ? 2.05 : 1.9)){ floatText(headW.clone().add(new T.Vector3(0,.35,0)), L('打空！','Miss!'), '#bbbbbb', 22); bxSfx.whoosh(); if(isMe) stats.combo = 0; return; }
+    if(dist() > 2.6){ floatText(headW.clone().add(new T.Vector3(0,.35,0)), L('打空！','Miss!'), '#bbbbbb', 22); bxSfx.whoosh(); if(isMe) stats.combo = 0; return; }
     if(isDodging(def)){ floatText(headW.clone().add(new T.Vector3(0,.35,0)), L('闪身步！','Side Step!'), '#7be0ff', 26); bxSfx.whoosh(); if(isMe) stats.combo = 0; return; }
     if(def.act === 'block'){
       const dmg = kind === 'kick' ? 5 : kind === 'cross' ? 3 : 1; def.hp -= dmg; bxSfx.block();
@@ -1799,10 +1791,10 @@ function BoxingGame(){
     ap(f.armL, rL); ap(f.armR, rR);
     f.rig.rotation.y += (yaw - f.rig.rotation.y)*sp;
     f.rig.rotation.x += (lean - f.rig.rotation.x)*sp;
-    f.rig.position.x += ((f === me ? 0 : side*sx) - f.rig.position.x)*sp;
+    f.rig.position.x += (side - f.rig.position.x)*sp;
     f.rig.position.y = bob - drop;
     f.rig.rotation.z = (f === me ? -roll : roll);
-    const walk = (f.walking || (f === opp && f.act === 'idle' && mode === 'fight' && !ended)) ? Math.sin(t*11)*.35 : 0;
+    const walk = f.walking ? Math.sin(t*11)*.35 : 0;
     f.legs[0].rotation.x += ((legK || walk) - f.legs[0].rotation.x)*sp; f.legs[1].rotation.x += (-walk - f.legs[1].rotation.x)*sp;
     f.headG.rotation.x += (headX - f.headG.rotation.x)*sp;
   }
@@ -1812,7 +1804,6 @@ function BoxingGame(){
     f.at += dt;
     const other = f === me ? opp : me;
     if((f.act === 'jab' || f.act === 'cross' || f.act === 'kick') && !f.hitDone && f.at >= f.dur*({jab:.4, cross:.45, kick:.5}[f.act])){ f.hitDone = true; if(!ended) resolve(f, other, f.act); }
-    if(f === me && (f.act === 'dodgeL' || f.act === 'dodgeR') && f.at < f.dur*.7){ axes(); me.root.position.addScaledVector(rightV, (f.act === 'dodgeL' ? -1 : 1)*1.7*dt); clampPos(me); }
     if(f.at >= f.dur){
       if(f.act === 'windup'){ f.act = ai.kind; f.at = 0; f.dur = DUR[ai.kind]; f.hitDone = false; bxSfx.whoosh(); f.gloveM.emissive.set(0x000000); $('#warnMark').style.display = 'none'; return; }
       if(f.act === 'hit'){ f.setFace(f.hp < 35 ? 'hurt' : (f === opp ? 'angry' : 'normal')); }
@@ -1825,13 +1816,8 @@ function BoxingGame(){
     if(opp.act !== 'idle') return;
     const d = dist(); axes();
     ai.strafeT = (ai.strafeT || 0) - dt; if(ai.strafeT <= 0){ ai.strafe = [-1,0,0,1][(Math.random()*4)|0]; ai.strafeT = rand(.8,2); }
-    const sp = (.9 + ai.aggr*.35)*dt;
-    if(d > 1.65) opp.root.position.addScaledVector(fwd, -sp);          // 行近
-    else if(d < 1.15) opp.root.position.addScaledVector(fwd, sp*.7);   // 退后
-    opp.root.position.addScaledVector(rightV, ai.strafe*sp*.6);         // 绕圈
-    clampPos(opp);
     ai.timer -= dt;
-    if(ai.timer <= 0 && d < 1.85){
+    if(ai.timer <= 0){
       const rk = Math.random(); ai.kind = rk < .5 ? 'jab' : rk < .85 ? 'cross' : 'kick';
       opp.act = 'windup'; opp.at = 0; opp.dur = Math.max(.32, .62 - ai.aggr*.08); opp.setFace('angry');
       $('#warnMark').style.display = 'block'; if(ai.kind === 'kick') opp.dur += .1;
@@ -1844,7 +1830,7 @@ function BoxingGame(){
   G.down = p => { if(mode !== 'fight') return; playerAct(p.x < 0 ? 'jab' : 'cross'); };
   const kd = e => { if(mode !== 'fight' || e.repeat) return; const k = e.key.toLowerCase();
     mkeys[k] = true;
-    if(k === 'j') playerAct('jab'); else if(k === 'k') playerAct('cross'); else if(k === 'l' || k === 'u') playerAct('kick'); else if(k === 'q') playerAct('dodgeL'); else if(k === 'e') playerAct('dodgeR'); else if(k === ' '){ e.preventDefault(); setBlock(true); } };
+    if(k === 'j') playerAct('jab'); else if(k === 'k') playerAct('cross'); else if(k === 'l' || k === 'u') playerAct('kick'); else if(k === 'q' || k === 'a' || k === 'arrowleft') playerAct('dodgeL'); else if(k === 'e' || k === 'd' || k === 'arrowright') playerAct('dodgeR'); else if(k === ' '){ e.preventDefault(); setBlock(true); } };
   const ku = e => { const k = e.key.toLowerCase(); mkeys[k] = false; if(k === ' ') setBlock(false); };
   window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
 
@@ -1864,7 +1850,7 @@ function BoxingGame(){
       // 走位
       let mx = joy.x + ((mkeys.d||mkeys.arrowright)?1:0) - ((mkeys.a||mkeys.arrowleft)?1:0), my = joy.y + ((mkeys.w||mkeys.arrowup)?1:0) - ((mkeys.s||mkeys.arrowdown)?1:0);
       const ml = Math.hypot(mx,my); if(ml > 1){ mx /= ml; my /= ml; }
-      const canMove = !ended && startT <= 0 && (me.act === 'idle' || me.act === 'block');
+      const canMove = false;
       me.walking = canMove && ml > .1;
       if(me.walking){ axes(); const v = (me.act === 'block' ? .9 : 1.9)*dt; me.root.position.addScaledVector(fwd, my*v).addScaledVector(rightV, mx*v); clampPos(me); }
       aiThink(dt); step(me, dt); step(opp, dt); separate();

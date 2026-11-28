@@ -136,6 +136,7 @@
     <button class="btn ghost" id="backBtn" style="padding:6px 12px;font-size:15px" data-i="back"></button>
     <div class="t" id="gTitle"></div>
     <div class="score" id="gScore"></div>
+    <button class="btn ghost" id="bgmBtn" style="padding:6px 10px;font-size:16px">🎵</button>
   </header>
   <div id="stage">
     <div id="bubble"></div>
@@ -242,6 +243,116 @@ const sfx = {
   coin(){ tone(988,988,.08,.2,'square'); setTimeout(()=>tone(1319,1319,.25,.2,'square'),80); },
 };
 const buzz = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+
+/* =========================================================
+   背景音乐（即时合成；原创旋律）
+   villain：华人神秘仪式（古筝式拨弦 + 木鱼 + 锣 + 碰铃 + 低沉持续音）
+   boxing：街机格斗风（鼓 + 低音 + 主旋律），原创
+   ========================================================= */
+const Music = (() => {
+  let on = (() => { try{ return localStorage.getItem('bgm') !== 'off'; }catch(e){ return true; } })();
+  let cur = null, timer = null, master = null, nextT = 0, step = 0, track = null, held = [];
+  let noiseBuf = null;
+  const N = n => 440 * Math.pow(2, (n - 69)/12);           // MIDI → Hz
+  function nb(a){ if(noiseBuf) return noiseBuf; const len = a.sampleRate, b = a.createBuffer(1,len,a.sampleRate), d = b.getChannelData(0); for(let i=0;i<len;i++) d[i] = Math.random()*2-1; return noiseBuf = b; }
+  function voice(a, type, f, t, att, dur, vol, {lp=0, vib=0, bend=0, dest=master}={}){
+    const o = a.createOscillator(), g = a.createGain(); o.type = type; o.frequency.setValueAtTime(f*(1+bend), t); if(bend) o.frequency.exponentialRampToValueAtTime(f, t+.06);
+    if(vib){ const l = a.createOscillator(), lg = a.createGain(); l.frequency.value = 5.5; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(f*vib, t+dur*.5); l.connect(lg).connect(o.frequency); l.start(t); l.stop(t+dur+.1); }
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t+att); g.gain.exponentialRampToValueAtTime(.0001, t+dur);
+    let n = o; if(lp){ const f2 = a.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = lp; o.connect(f2); n = f2; }
+    n.connect(g).connect(dest); o.start(t); o.stop(t+dur+.05);
+  }
+  function hit(a, t, dur, vol, type, f, q=1, f2=0){
+    const s = a.createBufferSource(); s.buffer = nb(a); const fl = a.createBiquadFilter(); fl.type = type; fl.frequency.setValueAtTime(f, t); if(f2) fl.frequency.exponentialRampToValueAtTime(f2, t+dur); fl.Q.value = q;
+    const g = a.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t+dur);
+    s.connect(fl).connect(g).connect(master); s.start(t, Math.random()*.5); s.stop(t+dur+.05);
+  }
+
+  // ---------- 打小人：神秘仪式 ----------
+  // A 小调五声音阶（A C D E G），两段旋律轮流
+  const _ = null;
+  const V_MEL = [
+    76,_,74,_,72,_,69,_,  _,_,72,74, 76,_,_,_,   79,_,76,_,74,_,72,_,  74,_,_,_, _,_,_,_,
+    69,_,72,_,74,_,76,_,  79,_,81,_, 79,76,74,_, 72,_,69,_,67,_,69,_,  _,_,_,_, _,_,_,_,
+    _,_,_,_,81,_,79,_,    76,_,_,_,74,_,76,_,    72,_,74,72,69,_,_,_,  67,_,69,_,_,_,_,_,
+    64,_,67,_,69,_,72,_,  74,_,72,_,69,_,67,_,   69,_,_,_,_,_,_,_,     _,_,_,_,_,_,_,_,
+  ];
+  const villain = {
+    bpm: 66, div: 2, len: 128,
+    start(a){ // 低沉持续音 + 风声
+      [[N(45),.05],[N(52),.03],[N(57),.015]].forEach(([f,v]) => { const o = a.createOscillator(), g = a.createGain(), l = a.createOscillator(), lg = a.createGain();
+        o.type = 'sine'; o.frequency.value = f; g.gain.value = v; l.frequency.value = .11 + Math.random()*.1; lg.gain.value = v*.5; l.connect(lg).connect(g.gain); o.connect(g).connect(master); o.start(); l.start(); held.push(o, l); });
+      const s = a.createBufferSource(); s.buffer = nb(a); s.loop = true; const f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 500; f.Q.value = .6; const g = a.createGain(); g.gain.value = .012;
+      s.connect(f).connect(g).connect(master); s.start(); held.push(s);
+    },
+    step(a, i, t, sd){
+      const n = V_MEL[i];
+      if(n){ voice(a, 'triangle', N(n), t, .004, 2.2, .07, {vib:.006, bend:.012}); voice(a, 'sine', N(n+12), t, .003, .8, .02); }
+      if(i % 4 === 0) hit(a, t, .07, i % 16 === 0 ? .22 : .12, 'bandpass', 900, 6);            // 木鱼
+      if(i % 16 === 0 || i % 16 === 11) voice(a, 'sine', 95, t, .005, .45, .12, {bend:.5});     // 堂鼓
+      if(i === 0 || i === 64){ [98,147.6,196.9,233.5,311].forEach((f,k) => voice(a, 'sine', f, t, .02, 6, .045/(k+1)*2.2)); hit(a, t, 3, .04, 'lowpass', 300, .5); } // 锣
+      if(i % 32 === 28){ voice(a, 'sine', 2093, t, .002, 2.2, .025); voice(a, 'sine', 2794, t, .002, 1.6, .015); }            // 碰铃
+    }
+  };
+
+  // ---------- 办公室拳击：街机格斗风（原创） ----------
+  // E 小调：Em - C - D - B，每小节 16 格
+  const B_ROOT = [40, 36, 38, 35];
+  const B_BASS = [0,_,_,12, _,_,0,_, 0,_,12,_, 0,_,10,_];
+  const B_LEAD = [
+    71,_,76,_,79,_,78,76, _,_,74,_,76,_,_,_,
+    76,_,79,_,81,_,79,76, _,_,79,_,84,_,83,_,
+    81,_,78,_,74,_,78,81, _,_,83,_,81,_,78,_,
+    83,_,_,_,81,_,79,_,   78,_,_,_,75,_,_,_,
+    71,_,76,_,79,_,83,_,  84,_,83,_,79,_,76,_,
+    76,_,79,_,84,_,83,79, _,_,79,_,76,_,72,_,
+    74,_,78,_,81,_,86,_,  84,_,83,_,81,_,78,_,
+    83,_,_,_,_,_,_,_,     78,_,79,_,81,_,83,_,
+  ];
+  const CHORD = [[64,67,71],[60,64,67],[62,66,69],[59,63,66]];
+  const boxing = {
+    bpm: 138, div: 4, len: 128,
+    start(){},
+    step(a, i, t, sd){
+      const bar = Math.floor(i/16) % 4, s = i % 16;
+      if(s % 4 === 0 || s === 14) voice(a, 'sine', 150, t, .002, .28, .32, {bend:1.6});            // 底鼓
+      if(s === 4 || s === 12){ hit(a, t, .16, .22, 'bandpass', 1800, .8); voice(a, 'triangle', 190, t, .002, .1, .08); } // 军鼓
+      if(s % 2 === 0) hit(a, t, s % 4 === 2 ? .09 : .03, s % 4 === 2 ? .06 : .04, 'highpass', 7000, .7); // 镲
+      const b = B_BASS[s]; if(b !== null) voice(a, 'sawtooth', N(B_ROOT[bar] + b), t, .005, sd*1.8, .07, {lp:600});
+      const l = B_LEAD[i % 128]; if(l) { voice(a, 'square', N(l), t, .006, sd*2.6, .028, {lp:2600, vib:.004}); voice(a, 'sawtooth', N(l)*1.005, t, .006, sd*2.4, .012, {lp:1800}); }
+      if(s === 0){ CHORD[bar].forEach(n => voice(a, 'sawtooth', N(n), t, .08, sd*15, .012, {lp:1100})); }
+      if(i === 0) hit(a, t, 1.2, .06, 'highpass', 4000, .5);                                          // 开头擦镲
+    }
+  };
+  const TRACKS = {villain, boxing};
+
+  function tick(){
+    const a = AC; if(!a || !track) return;
+    const sd = 60/track.bpm/track.div;
+    if(nextT < a.currentTime) nextT = a.currentTime + .05;
+    while(nextT < a.currentTime + .3){ track.step(a, step, nextT, sd); nextT += sd; step = (step + 1) % track.len; }
+  }
+  function startTrack(name){
+    const a = ac(); if(!a || !TRACKS[name]) return;
+    master = a.createGain(); master.gain.setValueAtTime(0, a.currentTime); master.gain.linearRampToValueAtTime(name === 'boxing' ? .5 : .6, a.currentTime + 1.5);
+    master.connect(a.destination);
+    track = TRACKS[name]; step = 0; nextT = a.currentTime + .1; held = [];
+    track.start(a); tick(); timer = setInterval(tick, 60);
+  }
+  function stopTrack(){
+    clearInterval(timer); timer = null; track = null;
+    const a = AC, m = master, h = held; master = null; held = [];
+    if(a && m){ m.gain.cancelScheduledValues(a.currentTime); m.gain.setValueAtTime(m.gain.value, a.currentTime); m.gain.linearRampToValueAtTime(0, a.currentTime + .6);
+      setTimeout(() => { h.forEach(x => { try{ x.stop(); }catch(e){} }); try{ m.disconnect(); }catch(e){} }, 800); }
+  }
+  function syncBtn(){ const b = document.getElementById('bgmBtn'); if(b){ b.textContent = on ? '🎵' : '🔇'; b.title = on ? 'BGM on' : 'BGM off'; } }
+  return {
+    play(name){ cur = name; stopTrack(); if(on) startTrack(name); syncBtn(); },
+    stop(){ cur = null; stopTrack(); },
+    toggle(){ on = !on; try{ localStorage.setItem('bgm', on ? 'on' : 'off'); }catch(e){} if(on && cur) startTrack(cur); else stopTrack(); syncBtn(); },
+    syncBtn,
+  };
+})();
 function say(text){ // 有粤语语音就用粤语读出来
   try{
     if(!window.speechSynthesis) return;
@@ -339,7 +450,7 @@ function center(html){ const c = $('#center'); c.innerHTML = html || ''; c.class
 function tools(html){ $('#tools').innerHTML = html || ''; }
 
 function startGame(id){
-  initRenderer();
+  initRenderer(); Music.play(id);
   $('#home').classList.remove('on'); $('#game').classList.add('on');
   $('#gTitle').textContent = {villain:'🩴 ' + t('vName'), boxing:'🥊 ' + t('bName')}[id];
   setScore(''); hint(''); center(''); tools(''); $('#bubble').style.display = 'none'; $('#luck').style.display = 'none'; $('#lung').style.display = 'none';
@@ -348,11 +459,13 @@ function startGame(id){
   cancelAnimationFrame(raf); loop();
 }
 function stopGame(){
+  Music.stop();
   cancelAnimationFrame(raf); game && game.stop && game.stop(); game = null;
   try{ speechSynthesis.cancel(); }catch(e){}
   $('#game').classList.remove('on'); $('#home').classList.add('on');
 }
 $('#backBtn').onclick = stopGame;
+$('#bgmBtn').onclick = () => { ac(); Music.toggle(); };
 document.querySelector('.cards').onclick = e => { const c = e.target.closest('.card'); if(c) startGame(c.dataset.g); };
 
 const std = (color, o={}) => new T.MeshStandardMaterial(Object.assign({color, roughness:.8}, o));
